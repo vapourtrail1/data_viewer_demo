@@ -10,6 +10,15 @@ ipch/
 *.VC.VC.opendb
 *.sln.docstates
 
+# 忽略构建文件
+*.exe
+*.recipe
+*.txt
+
+# 忽略 Qt 调试文件
+*.natvis
+
+
 # ===============================
 # Visual Studio 工程文件（忽略局部配置）
 # ===============================
