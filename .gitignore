@@ -1,0 +1,91 @@
+# ===============================
+# 基本环境
+# ===============================
+.vs/
+ipch/
+*.suo
+*.user
+*.userosscache
+*.VC.db
+*.VC.VC.opendb
+*.sln.docstates
+
+# ===============================
+# Visual Studio 工程文件（忽略局部配置）
+# ===============================
+*.vcxproj.user
+*.vcxproj.filters
+*.sln
+
+# ===============================
+# 编译与输出目录
+# ===============================
+/x64/
+/Debug/
+/Release/
+/build/
+/out/
+/bin/
+/obj/
+/CTViewer/x64/
+
+# ===============================
+# 编译产物
+# ===============================
+*.obj
+*.pdb
+*.idb
+*.ilk
+*.log
+*.tlog
+*.lastbuildstate
+*.pch
+*.ipch
+*.cache
+*.exe
+*.dll
+*.lib
+*.exp
+
+# ===============================
+# Qt 自动生成文件
+# ===============================
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+*.qmake.stash
+*.qmake.cache
+qt/
+.qmake.stash
+.qmake.cache
+
+# ===============================
+# CMake 文件
+# ===============================
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.cmake
+_generated/
+
+# ===============================
+# 临时与系统文件
+# ===============================
+*.tmp
+*.bak
+*.swp
+*.DS_Store
+Thumbs.db
+
+# ===============================
+# 日志、数据库与压缩包
+# ===============================
+*.db
+*.sqlite
+*.sqlite3
+*.zip
+*.7z
+*.tar
+*.gz
+*.log
