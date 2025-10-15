@@ -144,10 +144,10 @@ QWidget* DocumentPage::buildRightContent(QWidget* parent)
     auto bannerLayout = new QVBoxLayout(banner);
     bannerLayout->setContentsMargins(20, 16, 20, 16);
     bannerLayout->setSpacing(8);
-    auto title = new QLabel(QStringLiteral("欢迎使用 CTViewer_demo"), banner);
+    auto title = new QLabel(QStringLiteral("欢迎使用 data_viewer_demo"), banner);
     title->setStyleSheet(QStringLiteral("font-size:24px; font-weight:700;"));
     bannerLayout->addWidget(title);
-    auto subtitle = new QLabel(QStringLiteral("继续最近项目，或通过下方模块快速开始您的工业 CT 工作流程。"), banner);
+    auto subtitle = new QLabel(QStringLiteral("继续最近项目，或通过下方模块快速开始您的工作流程。"), banner);
     subtitle->setStyleSheet(QStringLiteral("font-size:14px; color:#bbbbbb;"));
     subtitle->setWordWrap(true);
     bannerLayout->addWidget(subtitle);
@@ -166,7 +166,7 @@ QWidget* DocumentPage::buildRightContent(QWidget* parent)
     tipsTitle->setStyleSheet(QStringLiteral("font-size:16px; font-weight:600;"));
     tipsLayout->addWidget(tipsTitle);
     auto tips = new QLabel(QStringLiteral(
-        "1.可直接导入 DICOM、TIFF、RAW 等常见工业 CT 数据。\n"
+        "1.可导入 DICOM、TIFF、RAW 等常见工业 CT 数据。\n"
         "2.若需培训资料，可访问帮助中心以获取最新教程。"), tipsFrame);
     tips->setWordWrap(true);
     tips->setStyleSheet(QStringLiteral("font-size:13px; line-height:20px;"));
@@ -289,7 +289,7 @@ void DocumentPage::wireLeftDockSignals()
 }
 
 /**
- *  连接右侧按钮/表格逻辑（这里只发信号，主窗口爱用不用）
+ *  连接右侧按钮/表格逻辑（这里只发信号）
  */
 void DocumentPage::wireRightContentSignals()
 {

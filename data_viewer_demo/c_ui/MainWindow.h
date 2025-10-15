@@ -8,6 +8,7 @@
 #include <QTabBar>
 
 class DocumentPage;
+class EditPage;
 
 class CTViewer : public QMainWindow
 {
@@ -45,4 +46,7 @@ private:
     // ---- 中央区 ----
     QPointer<QStackedWidget> stack_;
 	QPointer<DocumentPage> pageDocument_;//文档页面的指针
+	QPointer<EditPage> pageEdit_;
+
+    
 };

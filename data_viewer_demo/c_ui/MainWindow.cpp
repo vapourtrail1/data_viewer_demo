@@ -1,5 +1,6 @@
 ﻿#include "c_ui/MainWindow.h"
-#include "c_ui/workbenches/DocumentPage.h"   
+#include "c_ui/workbenches/DocumentPage.h"
+#include "c_ui/workbenches/EditPage.h"
 #include <QApplication>
 #include <QStackedWidget>
 #include <QVBoxLayout>
@@ -23,7 +24,7 @@ CTViewer::CTViewer(QWidget* parent)
 {
     // ---- 无边框窗口 + 深色主题 ----
     setWindowFlag(Qt::FramelessWindowHint);
-    setWindowTitle(QStringLiteral("CTViewer_demo"));
+    setWindowTitle(QStringLiteral("data_viewer_demo"));
     setStyleSheet(QStringLiteral(
         "QMainWindow{background-color:#121212;}"
         "QMenuBar, QStatusBar{background-color:#1a1a1a; color:#e0e0e0;}"));
@@ -183,14 +184,21 @@ void CTViewer::buildTitleBar()
 
     //标签栏交互
     connect(ribbontabBar_, &QTabBar::currentChanged, this, [this](int index) {
-        //仅先交互DocumentPage
+        //仅在堆栈存在时切换页面 避免空指针
         if (!stack_) {
             return;
         }
+        //通过索引切换页面
         if (index == 0 && pageDocument_) {
 			stack_->setCurrentWidget(pageDocument_);//setcurrentwidget是切换当前显示的页面
-            statusBar()->showMessage(QStringLiteral("已切换到“文件”功能区"), 1500);
+            statusBar()->showMessage(QStringLiteral("已切换到“文件”功能区"), 3000);
+            return;
 			
+        }
+        else if (index == 2 && pageEdit_) {
+			stack_->setCurrentWidget(pageEdit_);
+			statusBar()->showMessage(QStringLiteral("已切换到“编辑”功能区"), 3000);
+            return;
         }
         else if (index >= 0) {
             statusBar()->showMessage(QStringLiteral("“%1”功能暂未实现").arg(ribbontabBar_->tabText(index)), 1500);
@@ -271,9 +279,11 @@ void CTViewer::buildCentral()
     v->addWidget(stack_);
     setCentralWidget(central);
 
-    //  加载 DocumentPage 两个页面
+    //添加多个页面
     pageDocument_ = new DocumentPage(stack_);
     stack_->addWidget(pageDocument_);
+	pageEdit_ = new EditPage(stack_);
+	stack_->addWidget(pageEdit_);
     stack_->setCurrentWidget(pageDocument_);
 
     // ---- 连接 DocumentPage 发出的信号 ----
