@@ -12,10 +12,44 @@
 #include <QList>
 #include <QSize>
 
+//static是作用域限定符，表示该函数仅在当前文件内可见，防止命名冲突
+static QString wrapByWidth(const QString& s, const QFont& font, int maxWidthPx) {//第三个参数为一行允许的最大像素宽度
+    QFontMetrics fm(font); //给出这个字体下每个字符或者字符串的像素宽度。
+    QString out; 
+    int lineWidth = 0;//当前行的已占用的像素宽度累计
+
+    auto flushLineBreak = [&]() { out += QChar('\n');
+                                  lineWidth = 0; };
+
+    for (int i = 0; i < s.size(); ++i) {
+        const QChar ch = s.at(i);//获得指定位置的字符
+        int w = fm.horizontalAdvance(ch);//该字符在当前字体下的像素宽度
+
+        // 优先在自然断点处换行
+        bool isBreakable = (ch.isSpace() || ch == '/' || ch == '·' || ch == '、');
+        if (lineWidth + (w*1.2) > maxWidthPx) {
+            if (!out.isEmpty())
+            {
+                flushLineBreak();
+            }
+        }
+        out += ch;
+        lineWidth += w;
+
+        if (isBreakable) {
+            if (lineWidth > maxWidthPx * 0.85) 
+            {
+                flushLineBreak();
+            }
+        }
+    }
+    return out;
+}
+
 EditPage::EditPage(QWidget* parent)
     : QWidget(parent)
 {
-    // 设置页面外观，保持与主程序的深色主题一致
+    // 设置页面外观
     setObjectName(QStringLiteral("pageEdit"));
     setStyleSheet(QStringLiteral(
         "QWidget#pageEdit{background-color:#2b2b2b;}"
@@ -27,7 +61,7 @@ EditPage::EditPage(QWidget* parent)
     layout->setContentsMargins(0,0,0,0);
     layout->setSpacing(3);
 
-    // 功能区：顶部功能按钮区域
+    // 功能区调用
     layout->addWidget(buildRibbon(this));
 
     // 预留的内容区占位，用于后续填充具体的编辑工具界面
@@ -64,13 +98,14 @@ QWidget* EditPage::buildRibbon(QWidget* parent)
         "QToolButton{color:#e0e0e0; font-weight:600;}"));
 
     auto* layout = new QHBoxLayout(ribbon);
-    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setContentsMargins(4, 4, 4, 4);
     layout->setSpacing(1);
 
     const QIcon placeholderIcon = buildIcon(); // 预生成占位图标，供所有按钮复用
 
-    // 定义需要展示的功能按钮，标记哪些按钮需要弹出菜单
-    struct RibbonAction {
+    
+    struct RibbonAction
+    {
         QString text;
         bool hasMenu;
     };
@@ -96,17 +131,20 @@ QWidget* EditPage::buildRibbon(QWidget* parent)
         { QStringLiteral("动态重命名"), false }
     };
 
-    for (const auto& action : actions) {
-        // 每个功能都使用图标+文字的形式展示
-        auto* button = new QToolButton(ribbon);
-        button->setText(action.text);
+
+	for (const auto& action : actions) {
+        // 每个功能都使用图标,文字的形式展示
+        auto* button = new QToolButton(ribbon); 
+        QString wrappedText = wrapByWidth(action.text, button->font(), 70);
+        button->setText(wrappedText);
         button->setIcon(placeholderIcon);
         button->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-        button->setIconSize(QSize(40, 40));
-        button->setMinimumSize(QSize(90, 82));
+        button->setIconSize(QSize(56, 56));
+        button->setMinimumSize(QSize(85, 90));
 
+       
         if (action.hasMenu) {
-            // 转换为 功能 需要后期拓展
+            // 转换为功能 需要后期拓展
             auto* menu = new QMenu(button);
             menu->addAction(QStringLiteral("占位选项 A"));
             menu->addAction(QStringLiteral("占位选项 B"));
