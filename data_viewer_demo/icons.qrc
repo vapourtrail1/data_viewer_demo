@@ -1,0 +1,29 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>icons/cancel_obj_group.png</file>
+        <file>icons/copy.png</file>
+        <file>icons/copy_meta.png</file>
+        <file>icons/copy_visible_status.png</file>
+        <file>icons/create_obj_group.png</file>
+        <file>icons/cut.png</file>
+        <file>icons/delete.png</file>
+        <file>icons/dynamic_rename.png</file>
+        <file>icons/free_memory.png</file>
+        <file>icons/move.png</file>
+        <file>icons/paste.png</file>
+        <file>icons/paste_meta.png</file>
+        <file>icons/paste_visible_status.png</file>
+        <file>icons/property.png</file>
+        <file>icons/redo.png</file>
+        <file>icons/spin.png</file>
+        <file>icons/undo.png</file>
+        <file>icons/trans_pull_down_menu/analysis_surface.png</file>
+        <file>icons/trans_pull_down_menu/CAD.png</file>
+        <file>icons/trans_pull_down_menu/golden_surface.png</file>
+        <file>icons/trans_pull_down_menu/integration_grid.png</file>
+        <file>icons/trans_pull_down_menu/surface_grid.png</file>
+        <file>icons/trans_pull_down_menu/trans.png</file>
+        <file>icons/trans_pull_down_menu/volume.png</file>
+        <file>icons/trans_pull_down_menu/volume_grid.png</file>
+    </qresource>
+</RCC>

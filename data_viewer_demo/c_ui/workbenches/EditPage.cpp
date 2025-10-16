@@ -1,4 +1,4 @@
-#include "EditPage.h"
+ï»¿#include "EditPage.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFrame>
@@ -11,22 +11,26 @@
 #include <QPixmap>
 #include <QList>
 #include <QSize>
+#include <QDebug>
+#include <QFile>
 
-//staticÊÇ×÷ÓÃÓòÏŞ¶¨·û£¬±íÊ¾¸Ãº¯Êı½öÔÚµ±Ç°ÎÄ¼şÄÚ¿É¼û£¬·ÀÖ¹ÃüÃû³åÍ»
-static QString wrapByWidth(const QString& s, const QFont& font, int maxWidthPx) {//µÚÈı¸ö²ÎÊıÎªÒ»ĞĞÔÊĞíµÄ×î´óÏñËØ¿í¶È
-    QFontMetrics fm(font); //¸ø³öÕâ¸ö×ÖÌåÏÂÃ¿¸ö×Ö·û»òÕß×Ö·û´®µÄÏñËØ¿í¶È¡£
+
+
+//staticæ˜¯ä½œç”¨åŸŸé™å®šç¬¦ï¼Œè¡¨ç¤ºè¯¥å‡½æ•°ä»…åœ¨å½“å‰æ–‡ä»¶å†…å¯è§ï¼Œé˜²æ­¢å‘½åå†²çª
+static QString wrapByWidth(const QString& s, const QFont& font, int maxWidthPx) {//ç¬¬ä¸‰ä¸ªå‚æ•°ä¸ºä¸€è¡Œå…è®¸çš„æœ€å¤§åƒç´ å®½åº¦
+    QFontMetrics fm(font); //ç»™å‡ºè¿™ä¸ªå­—ä½“ä¸‹æ¯ä¸ªå­—ç¬¦æˆ–è€…å­—ç¬¦ä¸²çš„åƒç´ å®½åº¦ã€‚
     QString out; 
-    int lineWidth = 0;//µ±Ç°ĞĞµÄÒÑÕ¼ÓÃµÄÏñËØ¿í¶ÈÀÛ¼Æ
+    int lineWidth = 0;//å½“å‰è¡Œçš„å·²å ç”¨çš„åƒç´ å®½åº¦ç´¯è®¡
 
     auto flushLineBreak = [&]() { out += QChar('\n');
                                   lineWidth = 0; };
 
     for (int i = 0; i < s.size(); ++i) {
-        const QChar ch = s.at(i);//»ñµÃÖ¸¶¨Î»ÖÃµÄ×Ö·û
-        int w = fm.horizontalAdvance(ch);//¸Ã×Ö·ûÔÚµ±Ç°×ÖÌåÏÂµÄÏñËØ¿í¶È
+        const QChar ch = s.at(i);//è·å¾—æŒ‡å®šä½ç½®çš„å­—ç¬¦
+        int w = fm.horizontalAdvance(ch);//è¯¥å­—ç¬¦åœ¨å½“å‰å­—ä½“ä¸‹çš„åƒç´ å®½åº¦
 
-        // ÓÅÏÈÔÚ×ÔÈ»¶Ïµã´¦»»ĞĞ
-        bool isBreakable = (ch.isSpace() || ch == '/' || ch == '¡¤' || ch == '¡¢');
+        // ä¼˜å…ˆåœ¨è‡ªç„¶æ–­ç‚¹å¤„æ¢è¡Œ
+        bool isBreakable = (ch.isSpace() || ch == '/' || ch == 'Â·' || ch == 'ã€');
         if (lineWidth + (w*1.2) > maxWidthPx) {
             if (!out.isEmpty())
             {
@@ -46,10 +50,55 @@ static QString wrapByWidth(const QString& s, const QFont& font, int maxWidthPx) 
     return out;
 }
 
+
+static QIcon loadIconFor(const QString& text) {
+    struct Map {
+        QString key; 
+        const char* file;
+    };
+    static const Map map[] = {
+        { QStringLiteral("æ’¤é”€"),  ":/icons/icons/undo.png" },
+        { QStringLiteral("é‡åš"),  ":/icons/icons/redo.png" },
+        { QStringLiteral("é‡Šæ”¾å†…å­˜/æ¸…é™¤æ’¤é”€é˜Ÿåˆ—"), ":/icons/icons/free_memory.png" },
+        { QStringLiteral("å‰ªåˆ‡"),  ":/icons/icons/cut.png" },
+        { QStringLiteral("å¤åˆ¶"),  ":/icons/icons/copy.png" },
+        { QStringLiteral("ç²˜è´´"),  ":/icons/icons/paste.png" },
+        { QStringLiteral("åˆ é™¤"),  ":/icons/icons/delete.png" },
+        { QStringLiteral("åˆ›å»ºå¯¹è±¡ç»„"),  ":/icons/icons/create_obj_group.png" },
+        { QStringLiteral("å–æ¶ˆå¯¹è±¡ç»„"),  ":/icons/icons/cancel_obj_group.png" },
+        { QStringLiteral("è½¬æ¢ä¸º"),      ":/icons/icons/trans_pull_down_menu/trans.png" },
+        { QStringLiteral("å±æ€§"),        ":/icons/icons/property.png" },
+        { QStringLiteral("æ—‹è½¬"),        ":/icons/icons/spin.png" },
+        { QStringLiteral("ç§»åŠ¨"),        ":/icons/icons/move.png" },
+        { QStringLiteral("å¤åˆ¶å¯è§†çŠ¶æ€"),":/icons/icons/copy_visible_status.png" },
+        { QStringLiteral("ç²˜è´´å¯è§†çŠ¶æ€"),":/icons/icons/paste_visible_status.png" },
+        { QStringLiteral("å¤åˆ¶å…ƒä¿¡æ¯"),  ":/icons/icons/copy_meta.png" },
+        { QStringLiteral("ç²˜è´´å…ƒä¿¡æ¯"),  ":/icons/icons/paste_meta.png" },
+        { QStringLiteral("åŠ¨æ€é‡å‘½å"),  ":/icons/icons/dynamic_rename.png" },
+    };
+
+    qDebug() << "[loadIconFor] text =" << text;
+
+    for (const auto& m : map) {
+        if (text == m.key) {
+            const QString path = QString::fromUtf8(m.file);
+            qDebug() << "use path =" << path << ", is exist? =" << QFile(path).exists();
+            QIcon ico(path);//å°è¯•åŠ è½½æŒ‡å®šè·¯å¾„çš„å›¾ç‰‡
+			if (!ico.isNull()){
+				return ico;
+            }
+        }
+    }
+
+    qDebug() << "no path, use default path";
+    return QIcon(":/icons/icons/move.png");
+}
+
+
 EditPage::EditPage(QWidget* parent)
     : QWidget(parent)
 {
-    // ÉèÖÃÒ³ÃæÍâ¹Û
+    // è®¾ç½®é¡µé¢å¤–è§‚
     setObjectName(QStringLiteral("pageEdit"));
     setStyleSheet(QStringLiteral(
         "QWidget#pageEdit{background-color:#2b2b2b;}"
@@ -61,10 +110,10 @@ EditPage::EditPage(QWidget* parent)
     layout->setContentsMargins(0,0,0,0);
     layout->setSpacing(3);
 
-    // ¹¦ÄÜÇøµ÷ÓÃ
+    // åŠŸèƒ½åŒºè°ƒç”¨
     layout->addWidget(buildRibbon(this));
 
-    // Ô¤ÁôµÄÄÚÈİÇøÕ¼Î»£¬ÓÃÓÚºóĞøÌî³ä¾ßÌåµÄ±à¼­¹¤¾ß½çÃæ
+    // é¢„ç•™çš„å†…å®¹åŒºå ä½ï¼Œç”¨äºåç»­å¡«å……å…·ä½“çš„ç¼–è¾‘å·¥å…·ç•Œé¢
     auto* placeholder = new QFrame(this);
     placeholder->setObjectName(QStringLiteral("editContentPlaceholder"));
     placeholder->setStyleSheet(QStringLiteral(
@@ -75,33 +124,34 @@ EditPage::EditPage(QWidget* parent)
     placeholderLayout->setContentsMargins(0, 0, 0, 0);
     placeholderLayout->setSpacing(1);
 
-    auto* title = new QLabel(QStringLiteral("±à¼­¹¦ÄÜÇøÄÚÈİÇøÓò"), placeholder);
+    auto* title = new QLabel(QStringLiteral("ç¼–è¾‘åŠŸèƒ½åŒºå†…å®¹åŒºåŸŸ"), placeholder);
     title->setStyleSheet(QStringLiteral("font-size:16px; font-weight:600;"));
     placeholderLayout->addWidget(title);
 
-    auto* desc = new QLabel(QStringLiteral("ÕâÀï¿ÉÒÔ¼ÌĞøÀ©Õ¹Ìå»ı±à¼­¡¢¼¸ºÎµ÷ÕûµÈ²Ù×÷½çÃæ¡£"), placeholder);
+    auto* desc = new QLabel(QStringLiteral("è¿™é‡Œå¯ä»¥ç»§ç»­æ‰©å±•ä½“ç§¯ç¼–è¾‘ã€å‡ ä½•è°ƒæ•´ç­‰æ“ä½œç•Œé¢ã€‚"), placeholder);
     desc->setWordWrap(true);
     desc->setStyleSheet(QStringLiteral("font-size:13px;"));
     placeholderLayout->addWidget(desc);
     placeholderLayout->addStretch();
-
     layout->addWidget(placeholder, 1);
+
+    
 }
 
 QWidget* EditPage::buildRibbon(QWidget* parent)
 {
-    // ´´½¨¹¦ÄÜÇøÈİÆ÷
+    // åˆ›å»ºåŠŸèƒ½åŒºå®¹å™¨
     auto* ribbon = new QFrame(parent);
     ribbon->setObjectName(QStringLiteral("editRibbon"));
     ribbon->setStyleSheet(QStringLiteral(
-        "QFrame#editRibbon{background-color:#1f1f1f; border-radius:8px; border:1px solid #2b2b2b;}"
+        "QFrame#editRibbon{background-color:#322F30; border-radius:8px; border:1px solid #2b2b2b;}"
         "QToolButton{color:#e0e0e0; font-weight:600;}"));
 
     auto* layout = new QHBoxLayout(ribbon);
     layout->setContentsMargins(4, 4, 4, 4);
     layout->setSpacing(1);
 
-    const QIcon placeholderIcon = buildIcon(); // Ô¤Éú³ÉÕ¼Î»Í¼±ê£¬¹©ËùÓĞ°´Å¥¸´ÓÃ
+    /*const QIcon placeholderIcon = buildIcon(); */// é¢„ç”Ÿæˆå ä½å›¾æ ‡ï¼Œä¾›æ‰€æœ‰æŒ‰é’®å¤ç”¨
 
     
     struct RibbonAction
@@ -111,45 +161,54 @@ QWidget* EditPage::buildRibbon(QWidget* parent)
     };
 
     const QList<RibbonAction> actions = {
-        { QStringLiteral("³·Ïú"), false },
-        { QStringLiteral("ÖØ×ö"), false },
-        { QStringLiteral("ÊÍ·ÅÄÚ´æ/Çå³ı³·Ïú¶ÓÁĞ"), false },
-        { QStringLiteral("¼ôÇĞ"), false },
-        { QStringLiteral("¸´ÖÆ"), false },
-        { QStringLiteral("Õ³Ìù"), false },
-        { QStringLiteral("É¾³ı"), false },
-        { QStringLiteral("´´½¨¶ÔÏó×é"), false },
-        { QStringLiteral("È¡Ïû¶ÔÏó×é"), false },
-        { QStringLiteral("×ª»»Îª"), true },
-        { QStringLiteral("ÊôĞÔ"), false },
-        { QStringLiteral("Ğı×ª"), false },
-        { QStringLiteral("ÒÆ¶¯"), false },
-        { QStringLiteral("¸´ÖÆ¿ÉÊÓ×´Ì¬"), false },
-        { QStringLiteral("Õ³Ìù¿ÉÊÓ×´Ì¬"), false },
-        { QStringLiteral("¸´ÖÆÔªĞÅÏ¢"), false },
-        { QStringLiteral("Õ³ÌùÔªĞÅÏ¢"), false },
-        { QStringLiteral("¶¯Ì¬ÖØÃüÃû"), false }
+        { QStringLiteral("æ’¤é”€"), false },
+        { QStringLiteral("é‡åš"), false },
+        { QStringLiteral("é‡Šæ”¾å†…å­˜/æ¸…é™¤æ’¤é”€é˜Ÿåˆ—"), false },
+        { QStringLiteral("å‰ªåˆ‡"), false },
+        { QStringLiteral("å¤åˆ¶"), false },
+        { QStringLiteral("ç²˜è´´"), false },
+        { QStringLiteral("åˆ é™¤"), false },
+        { QStringLiteral("åˆ›å»ºå¯¹è±¡ç»„"), false },
+        { QStringLiteral("å–æ¶ˆå¯¹è±¡ç»„"), false },
+        { QStringLiteral("è½¬æ¢ä¸º"), true },
+        { QStringLiteral("å±æ€§"), false },
+        { QStringLiteral("æ—‹è½¬"), false },
+        { QStringLiteral("ç§»åŠ¨"), false },
+        { QStringLiteral("å¤åˆ¶å¯è§†çŠ¶æ€"), false },
+        { QStringLiteral("ç²˜è´´å¯è§†çŠ¶æ€"), false },
+        { QStringLiteral("å¤åˆ¶å…ƒä¿¡æ¯"), false },
+        { QStringLiteral("ç²˜è´´å…ƒä¿¡æ¯"), false },
+        { QStringLiteral("åŠ¨æ€é‡å‘½å"), false }
     };
 
 
 	for (const auto& action : actions) {
-        // Ã¿¸ö¹¦ÄÜ¶¼Ê¹ÓÃÍ¼±ê,ÎÄ×ÖµÄĞÎÊ½Õ¹Ê¾
+        // æ¯ä¸ªåŠŸèƒ½éƒ½ä½¿ç”¨å›¾æ ‡,æ–‡å­—çš„å½¢å¼å±•ç¤º
         auto* button = new QToolButton(ribbon); 
         QString wrappedText = wrapByWidth(action.text, button->font(), 70);
         button->setText(wrappedText);
-        button->setIcon(placeholderIcon);
+        button->setIcon(loadIconFor(action.text));
         button->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-        button->setIconSize(QSize(56, 56));
-        button->setMinimumSize(QSize(85, 90));
+        button->setIconSize(QSize(48, 48));
+        button->setMinimumSize(QSize(85, 95));
 
        
         if (action.hasMenu) {
-            // ×ª»»Îª¹¦ÄÜ ĞèÒªºóÆÚÍØÕ¹
+            // è½¬æ¢ä¸ºåŠŸèƒ½ éœ€è¦åæœŸæ‹“å±•
             auto* menu = new QMenu(button);
-            menu->addAction(QStringLiteral("Õ¼Î»Ñ¡Ïî A"));
-            menu->addAction(QStringLiteral("Õ¼Î»Ñ¡Ïî B"));
+            menu->setStyleSheet(QStringLiteral(
+                "QMenu{background:#2b2b2b; border:1px solid #3a3a3a;}"
+                "QMenu::item{color:#e0e0e0; padding:6px 24px;}"
+				"QMenu::item:selected{background:#3a3a3a;}"));
+            menu->addAction(QStringLiteral("ä½“ç§¯"));
+            menu->addAction(QStringLiteral("å››é¢ä½“ä½“ç§¯ç½‘æ ¼"));
+            menu->addAction(QStringLiteral("è¡¨é¢ç½‘æ ¼"));
+            menu->addAction(QStringLiteral("CAD"));
+            menu->addAction(QStringLiteral("é»„é‡‘è¡¨é¢"));
+            menu->addAction(QStringLiteral("åˆ†æç»“æœä¸­çš„æœ‰è‰²è¡¨é¢ç½‘æ ¼"));
+            menu->addAction(QStringLiteral("æ¥è‡ªå››é¢ä½“ä½“ç§¯ç½‘æ ¼çš„é›†æˆç½‘æ ¼"));
             button->setMenu(menu);
-            button->setPopupMode(QToolButton::InstantPopup);
+			button->setPopupMode(QToolButton::InstantPopup);//ç‚¹å‡»æŒ‰é’®æ—¶ç›´æ¥å¼¹å‡ºèœå•
         }
 
         layout->addWidget(button);
@@ -159,22 +218,22 @@ QWidget* EditPage::buildRibbon(QWidget* parent)
     return ribbon;
 }
 
-QIcon EditPage::buildIcon() const
-{
-    // ´´½¨Ò»¸ö»ÒÉ«µÄ·½ĞÎÕ¼Î»Í¼±ê£¬ÌáĞÑºóĞøÌæ»»ÎªÕæÊµ×ÊÔ´
-    QPixmap pixmap(48, 48);
-    pixmap.fill(Qt::transparent);
-
-    QPainter painter(&pixmap);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setBrush(QColor(QStringLiteral("#4a4a4a")));
-    painter.setPen(QPen(QColor(QStringLiteral("#6c6c6c")), 2));
-    painter.drawRoundedRect(pixmap.rect().adjusted(3, 3, -3, -3), 8, 8);
-
-    painter.setPen(QPen(QColor(QStringLiteral("#bdbdbd"))));
-    painter.setFont(QFont(QStringLiteral("Microsoft YaHei"), 8, QFont::Bold));
-    painter.drawText(pixmap.rect(), Qt::AlignCenter, QStringLiteral("ICON"));
-
-    painter.end();
-    return QIcon(pixmap);
-}
+//QIcon EditPage::buildIcon() const
+//{
+//    // åˆ›å»ºä¸€ä¸ªç°è‰²çš„æ–¹å½¢å ä½å›¾æ ‡ï¼Œæé†’åç»­æ›¿æ¢ä¸ºçœŸå®èµ„æº
+//    QPixmap pixmap(48, 48);
+//    pixmap.fill(Qt::transparent);
+//
+//    QPainter painter(&pixmap);
+//    painter.setRenderHint(QPainter::Antialiasing);
+//    painter.setBrush(QColor(QStringLiteral("#4a4a4a")));
+//    painter.setPen(QPen(QColor(QStringLiteral("#6c6c6c")), 2));
+//    painter.drawRoundedRect(pixmap.rect().adjusted(3, 3, -3, -3), 8, 8);
+//
+//    painter.setPen(QPen(QColor(QStringLiteral("#bdbdbd"))));
+//    painter.setFont(QFont(QStringLiteral("Microsoft YaHei"), 8, QFont::Bold));
+//    painter.drawText(pixmap.rect(), Qt::AlignCenter, QStringLiteral("ICON"));
+//
+//    painter.end();
+//    return QIcon(pixmap);
+//}

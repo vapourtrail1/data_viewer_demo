@@ -6,6 +6,7 @@
 #include <QTableWidget>
 #include <QIcon>
 #include <QDebug>
+#include <QFile>
 
 class QToolButton;
 
