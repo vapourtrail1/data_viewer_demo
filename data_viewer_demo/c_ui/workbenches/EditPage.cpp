@@ -15,7 +15,7 @@
 #include <QFile>
 
 
-
+//git 
 //static是作用域限定符，表示该函数仅在当前文件内可见，防止命名冲突
 //辅助函数控制换行
 static QString wrapByWidth(const QString& s, const QFont& font, int maxWidthPx) {//第三个参数为一行允许的最大像素宽度
