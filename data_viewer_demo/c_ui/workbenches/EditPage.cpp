@@ -17,6 +17,7 @@
 
 
 //static是作用域限定符，表示该函数仅在当前文件内可见，防止命名冲突
+//辅助函数控制换行
 static QString wrapByWidth(const QString& s, const QFont& font, int maxWidthPx) {//第三个参数为一行允许的最大像素宽度
     QFontMetrics fm(font); //给出这个字体下每个字符或者字符串的像素宽度。
     QString out; 
@@ -39,7 +40,6 @@ static QString wrapByWidth(const QString& s, const QFont& font, int maxWidthPx) 
         }
         out += ch;
         lineWidth += w;
-
         if (isBreakable) {
             if (lineWidth > maxWidthPx * 0.85) 
             {
@@ -50,10 +50,10 @@ static QString wrapByWidth(const QString& s, const QFont& font, int maxWidthPx) 
     return out;
 }
 
-
+// 辅助函数  根据按钮文本加载对应图标
 static QIcon loadIconFor(const QString& text) {
     struct Map {
-        QString key; 
+		QString key; //避免编码转换 直接用QString
         const char* file;
     };
     static const Map map[] = {
@@ -83,9 +83,9 @@ static QIcon loadIconFor(const QString& text) {
         if (text == m.key) {
             const QString path = QString::fromUtf8(m.file);
             qDebug() << "use path =" << path << ", is exist? =" << QFile(path).exists();
-            QIcon ico(path);//尝试加载指定路径的图片
+            QIcon ico(path);//用给定的路径 创建一个Qicon对象
 			if (!ico.isNull()){
-				return ico;
+				return ico;//
             }
         }
     }
