@@ -1,49 +1,235 @@
-#include "c_ui/workbenches/VolumePage.h"
-#include "c_ui/action/ActionIDs.h"
-#include <QGridLayout>
-#include <QWidget>
+#include "VolumePage.h"
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QFrame>
+#include <QLabel>
+#include <QToolButton>
+#include <QMenu>
+#include <QPainter>
+#include <QPen>
+#include <QFont>
+#include <QPixmap>
+#include <QList>
+#include <QSize>
+#include <QDebug>
+#include <QFile>
 
-VolumePage::VolumePage(QWidget* parent) : PageBase(parent) {
-    buildUi();
+
+//git 
+//static是作用域限定符，表示该函数仅在当前文件内可见，防止命名冲突
+//辅助函数控制换行
+static QString wrapByWidth(const QString& s, const QFont& font, int maxWidthPx) {//第三个参数为一行允许的最大像素宽度
+    QFontMetrics fm(font); //给出这个字体下每个字符或者字符串的像素宽度。
+    QString out;
+    int lineWidth = 0;//当前行的已占用的像素宽度累计
+
+    auto flushLineBreak = [&]() { out += QChar('\n');
+    lineWidth = 0; };
+
+    for (int i = 0; i < s.size(); ++i) {
+        const QChar ch = s.at(i);//获得指定位置的字符
+        int w = fm.horizontalAdvance(ch);//该字符在当前字体下的像素宽度
+
+        // 优先在自然断点处换行
+        bool isBreakable = (ch.isSpace() || ch == '/' || ch == '·' || ch == '、');
+        if (lineWidth + (w * 1.2) > maxWidthPx) {
+            if (!out.isEmpty())
+            {
+                flushLineBreak();
+            }
+        }
+        out += ch;
+        lineWidth += w;
+        if (isBreakable) {
+            if (lineWidth > maxWidthPx * 0.85)
+            {
+                flushLineBreak();
+            }
+        }
+    }
+    return out;
 }
 
-QList<MenuSpec> VolumePage::menus() const {
-    return {
-        { QStringLiteral("文件"),   { Act_Open, Act_Save, Act_SaveAs, Act_Export } },
-        { QStringLiteral("开始"),   { Act_CTReconstruct, Act_Import, Act_Export } },
-        { QStringLiteral("编辑"),   { Act_Undo, Act_Redo } },
-        { QStringLiteral("体积"),   { Act_VolumeCrop } },
-        { QStringLiteral("视图"),   { Act_ResetView, Act_FitAll } },
-        { QStringLiteral("首选项"), { Act_Preferences } }
+// 辅助函数  根据按钮文本加载对应图标
+static QIcon loadIconFor(const QString& text) {
+    struct Map {
+        QString key; //避免编码转换 直接用QString
+        const char* file;
     };
+    static const Map map[] = {
+        { QStringLiteral("撤销"),  ":/icons/icons/undo.png" },
+        { QStringLiteral("重做"),  ":/icons/icons/redo.png" },
+        { QStringLiteral("释放内存/清除撤销队列"), ":/icons/icons/free_memory.png" },
+        { QStringLiteral("剪切"),  ":/icons/icons/cut.png" },
+        { QStringLiteral("复制"),  ":/icons/icons/copy.png" },
+        { QStringLiteral("粘贴"),  ":/icons/icons/paste.png" },
+        { QStringLiteral("删除"),  ":/icons/icons/delete.png" },
+        { QStringLiteral("创建对象组"),  ":/icons/icons/create_obj_group.png" },
+        { QStringLiteral("取消对象组"),  ":/icons/icons/cancel_obj_group.png" },
+        { QStringLiteral("转换为"),      ":/icons/icons/trans_pull_down_menu/trans.png" },
+        { QStringLiteral("属性"),        ":/icons/icons/property.png" },
+        { QStringLiteral("旋转"),        ":/icons/icons/spin.png" },
+        { QStringLiteral("移动"),        ":/icons/icons/move.png" },
+        { QStringLiteral("复制可视状态"),":/icons/icons/copy_visible_status.png" },
+        { QStringLiteral("粘贴可视状态"),":/icons/icons/paste_visible_status.png" },
+        { QStringLiteral("复制元信息"),  ":/icons/icons/copy_meta.png" },
+        { QStringLiteral("粘贴元信息"),  ":/icons/icons/paste_meta.png" },
+        { QStringLiteral("动态重命名"),  ":/icons/icons/dynamic_rename.png" },
+    };
+
+    qDebug() << "[loadIconFor] text =" << text;
+
+    for (const auto& m : map) {
+        if (text == m.key) {
+            const QString path = QString::fromUtf8(m.file);
+            qDebug() << "use path =" << path << ", is exist? =" << QFile(path).exists();
+            QIcon ico(path);//用给定的路径 创建一个Qicon对象
+            if (!ico.isNull()) {
+                return ico;//
+            }
+        }
+    }
+    qDebug() << "no path, use default path";
+    return QIcon(":/icons/icons/move.png");
 }
 
-void VolumePage::buildUi() {
-    auto grid = new QGridLayout(this);
-    grid->setContentsMargins(6, 6, 6, 6);
-    grid->setHorizontalSpacing(6);
-    grid->setVerticalSpacing(6);
 
-#if USE_VTK
-    viewAxial_ = new QVTKOpenGLNativeWidget(this);
-    viewSagittal_ = new QVTKOpenGLNativeWidget(this);
-    viewCoronal_ = new QVTKOpenGLNativeWidget(this);
-#else
-    auto makePlaceholder = [this](const QString& name) {
-        auto w = new QWidget(this);
-        w->setObjectName(name);
-        w->setStyleSheet("background:#111;border:1px solid #222;");
-        return w;
-        };
-    viewAxial_ = makePlaceholder("viewAxial");
-    viewSagittal_ = makePlaceholder("viewSagittal");
-    viewCoronal_ = makePlaceholder("viewCoronal");
-#endif
-    auto placeholder = new QWidget(this);
-    placeholder->setStyleSheet("background:#1a1a1a;border:1px dashed #333;");
+VolumePage::VolumePage(QWidget* parent)
+    : QWidget(parent)
+{
+    // 设置页面外观
+    setObjectName(QStringLiteral("volumeEdit"));
+    setStyleSheet(QStringLiteral(
+        "QWidget#pageEdit{background-color:#2b2b2b;}"
+        "QLabel{color:#f0f0f0;}"
+        "QToolButton{color:#f7f7f7; border-radius:6px; padding:6px;}"
+        "QToolButton:hover{background-color:#3a3a3a;}"));
 
-    grid->addWidget(viewAxial_, 0, 0);
-    grid->addWidget(viewSagittal_, 1, 0);
-    grid->addWidget(viewCoronal_, 0, 1);
-    grid->addWidget(placeholder, 1, 1);
+    auto* layout02 = new QVBoxLayout(this);
+    layout02->setContentsMargins(0, 0, 0, 0);
+    layout02->setSpacing(3);
+
+    // 功能区调用
+    layout02->addWidget(buildRibbon02(this));
+
+    // 预留的内容区占位，用于后续填充具体的编辑工具界面
+    auto* placeholder02 = new QFrame(this);
+    placeholder02->setObjectName(QStringLiteral("volumeContentPlaceholder"));
+    placeholder02->setStyleSheet(QStringLiteral(
+        "QFrame#editContentPlaceholder{background-color:#1d1d1d; border-radius:8px; border:1px solid #313131;}"
+        "QFrame#editContentPlaceholder QLabel{color:#cccccc;}"));
+
+    auto* placeholderLayout02 = new QVBoxLayout(placeholder02);
+    placeholderLayout02->setContentsMargins(0, 0, 0, 0);
+    placeholderLayout02->setSpacing(1);
+
+    auto* title02 = new QLabel(QStringLiteral("体积功能区内容区域"), placeholder02);
+    title02->setStyleSheet(QStringLiteral("font-size:16px; font-weight:600;"));
+    placeholderLayout02->addWidget(title02);
+
+    auto* desc02 = new QLabel(QStringLiteral("这里可以继续扩展体积编辑、几何调整等操作界面。"), placeholder02);
+    desc02->setWordWrap(true);
+    desc02->setStyleSheet(QStringLiteral("font-size:13px;"));
+    placeholderLayout02->addWidget(desc02);
+    placeholderLayout02->addStretch();
+    layout02->addWidget(placeholder02, 1);
 }
+
+QWidget* VolumePage::buildRibbon02(QWidget* parent)
+{
+    // 创建功能区容器
+    auto* ribbon02 = new QFrame(parent);
+    ribbon02->setObjectName(QStringLiteral("editRibbon"));
+    ribbon02->setStyleSheet(QStringLiteral(
+        "QFrame#editRibbon{background-color:#322F30; border-radius:8px; border:1px solid #2b2b2b;}"
+        "QToolButton{color:#e0e0e0; font-weight:600;}"));
+
+    auto* layout02 = new QHBoxLayout(ribbon02);
+    layout02->setContentsMargins(4, 4, 4, 4);
+    layout02->setSpacing(1);
+
+    /*const QIcon placeholderIcon = buildIcon(); */// 预生成占位图标，供所有按钮复用
+
+
+    struct RibbonAction02
+    {
+        QString text;
+        bool hasMenu;
+    };
+
+    const QList<RibbonAction02> actions02 = {
+        { QStringLiteral("撤销"), false },
+        { QStringLiteral("重做"), false },
+        { QStringLiteral("释放内存/清除撤销队列"), false },
+        { QStringLiteral("剪切"), false },
+        { QStringLiteral("复制"), false },
+        { QStringLiteral("粘贴"), false },
+        { QStringLiteral("删除"), false },
+        { QStringLiteral("创建对象组"), false },
+        { QStringLiteral("取消对象组"), false },
+        { QStringLiteral("转换为"), true },
+        { QStringLiteral("属性"), false },
+        { QStringLiteral("旋转"), false },
+        { QStringLiteral("移动"), false },
+        { QStringLiteral("复制可视状态"), false },
+        { QStringLiteral("粘贴可视状态"), false },
+        { QStringLiteral("复制元信息"), false },
+        { QStringLiteral("粘贴元信息"), false },
+        { QStringLiteral("动态重命名"), false }
+    };
+
+
+    for (const auto& action : actions02) {
+        // 每个功能都使用图标,文字的形式展示
+        auto* button = new QToolButton(ribbon02);
+        QString wrappedText = wrapByWidth(action.text, button->font(), 70);
+        button->setText(wrappedText);
+        button->setIcon(loadIconFor(action.text));
+        button->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+        button->setIconSize(QSize(48, 48));
+        button->setMinimumSize(QSize(85, 95));
+
+
+        if (action.hasMenu) {
+            // 转换为功能 需要后期拓展
+            auto* menu = new QMenu(button);
+            menu->setStyleSheet(QStringLiteral(
+                "QMenu{background:#2b2b2b; border:1px solid #3a3a3a;}"
+                "QMenu::item{color:#e0e0e0; padding:6px 24px;}"
+                "QMenu::item:selected{background:#3a3a3a;}"));
+            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/volume.png"), QStringLiteral("体积"));
+            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/volume_grid.png"), QStringLiteral("四面体体积网格"));
+            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/surface_grid.png"), QStringLiteral("表面网格"));
+            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/CAD.png"), QStringLiteral("CAD"));
+            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/golden_surface.png"), QStringLiteral("黄金表面"));
+            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/analysis_surface.png"), QStringLiteral("分析结果中的有色表面网格"));
+            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/integration_grid.png"), QStringLiteral("来自四面体体积网格的集成网格"));
+            button->setMenu(menu);
+            button->setPopupMode(QToolButton::InstantPopup);//点击按钮时直接弹出菜单
+        }
+        layout02->addWidget(button);
+    }
+
+    layout02->addStretch();
+    return ribbon02;
+}
+
+//QIcon EditPage::buildIcon() const
+//{
+//    // 创建一个灰色的方形占位图标，后续替换为真实资源
+//    QPixmap pixmap(48, 48);
+//    pixmap.fill(Qt::transparent);
+//
+//    QPainter painter(&pixmap);
+//    painter.setRenderHint(QPainter::Antialiasing);
+//    painter.setBrush(QColor(QStringLiteral("#4a4a4a")));
+//    painter.setPen(QPen(QColor(QStringLiteral("#6c6c6c")), 2));
+//    painter.drawRoundedRect(pixmap.rect().adjusted(3, 3, -3, -3), 8, 8);
+//
+//    painter.setPen(QPen(QColor(QStringLiteral("#bdbdbd"))));
+//    painter.setFont(QFont(QStringLiteral("Microsoft YaHei"), 8, QFont::Bold));
+//    painter.drawText(pixmap.rect(), Qt::AlignCenter, QStringLiteral("ICON"));
+//
+//    painter.end();
+//    return QIcon(pixmap);
+//}

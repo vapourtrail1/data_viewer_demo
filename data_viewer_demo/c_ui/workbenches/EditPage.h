@@ -19,9 +19,5 @@ public:
 private:
 	QWidget* buildRibbon(QWidget* parent);//辅助函数
 
-	QWidget* buildRibbonGroup(const QString& title, const QStringList& actions, QWidget* parent);//构造函数的功能分区
-
-	QIcon buildIcon() const;//图标加载函数
-    
 };
 

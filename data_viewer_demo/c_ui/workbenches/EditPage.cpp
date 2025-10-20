@@ -200,17 +200,16 @@ QWidget* EditPage::buildRibbon(QWidget* parent)
                 "QMenu{background:#2b2b2b; border:1px solid #3a3a3a;}"
                 "QMenu::item{color:#e0e0e0; padding:6px 24px;}"
 				"QMenu::item:selected{background:#3a3a3a;}"));
-            menu->addAction(QStringLiteral("体积"));
-            menu->addAction(QStringLiteral("四面体体积网格"));
-            menu->addAction(QStringLiteral("表面网格"));
-            menu->addAction(QStringLiteral("CAD"));
-            menu->addAction(QStringLiteral("黄金表面"));
-            menu->addAction(QStringLiteral("分析结果中的有色表面网格"));
-            menu->addAction(QStringLiteral("来自四面体体积网格的集成网格"));
+            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/volume.png"), QStringLiteral("体积"));
+            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/volume_grid.png"), QStringLiteral("四面体体积网格"));
+            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/surface_grid.png"), QStringLiteral("表面网格"));
+            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/CAD.png"), QStringLiteral("CAD"));
+            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/golden_surface.png"), QStringLiteral("黄金表面"));
+            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/analysis_surface.png"), QStringLiteral("分析结果中的有色表面网格"));
+            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/integration_grid.png"), QStringLiteral("来自四面体体积网格的集成网格"));
             button->setMenu(menu);
 			button->setPopupMode(QToolButton::InstantPopup);//点击按钮时直接弹出菜单
         }
-
         layout->addWidget(button);
     }
 
@@ -220,7 +219,7 @@ QWidget* EditPage::buildRibbon(QWidget* parent)
 
 //QIcon EditPage::buildIcon() const
 //{
-//    // 创建一个灰色的方形占位图标，提醒后续替换为真实资源
+//    // 创建一个灰色的方形占位图标，后续替换为真实资源
 //    QPixmap pixmap(48, 48);
 //    pixmap.fill(Qt::transparent);
 //

@@ -1,27 +1,26 @@
 #pragma once
-#include "c_ui/PageBase.h"
+#include <QWidget>
 #include <QPointer>
+#include <QListWidget>
+#include <QPushButton>
+#include <QTableWidget>
+#include <QIcon>
+#include <QDebug>
+#include <QFile>
 
-class QWidget;
-#if USE_VTK
-class QVTKOpenGLNativeWidget;
-#endif
+class QToolButton;
 
-class VolumePage : public PageBase {
-    Q_OBJECT
+class VolumePage : public QWidget
+{
+	Q_OBJECT
 public:
-    explicit VolumePage(QWidget* parent = nullptr);
-    QList<MenuSpec> menus() const override;
+	explicit VolumePage(QWidget* parent = nullptr);
 
 private:
-    void buildUi();
-#if USE_VTK
-    QPointer<QVTKOpenGLNativeWidget> viewAxial_;
-    QPointer<QVTKOpenGLNativeWidget> viewSagittal_;
-    QPointer<QVTKOpenGLNativeWidget> viewCoronal_;
-#else
-    QPointer<QWidget> viewAxial_;
-    QPointer<QWidget> viewSagittal_;
-    QPointer<QWidget> viewCoronal_;
-#endif
+	QWidget* buildRibbon02(QWidget* parent);//¸¨Öúº¯Êý
+
+
+
+
+
 };

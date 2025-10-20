@@ -200,10 +200,15 @@ void CTViewer::buildTitleBar()
 			statusBar()->showMessage(QStringLiteral("已切换到“编辑”功能区"), 3000);
             return;
         }
+        else if (index == 3 && pageVolume_) {
+            stack_->setCurrentWidget(pageVolume_);
+            statusBar()->showMessage(QStringLiteral("已切换到“体积”功能区"), 3000);
+            return;
+        }
         else if (index >= 0) {
             statusBar()->showMessage(QStringLiteral("“%1”功能暂未实现").arg(ribbontabBar_->tabText(index)), 1500);
         }
-        
+
 		});
 
     

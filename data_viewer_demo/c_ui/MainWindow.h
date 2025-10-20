@@ -9,6 +9,7 @@
 
 class DocumentPage;
 class EditPage;
+class VolumePage;
 
 class CTViewer : public QMainWindow
 {
@@ -47,6 +48,5 @@ private:
     QPointer<QStackedWidget> stack_;
 	QPointer<DocumentPage> pageDocument_;//文档页面的指针
 	QPointer<EditPage> pageEdit_;
-
-    
+	QPointer<VolumePage> pageVolume_;
 };
