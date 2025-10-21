@@ -1,6 +1,8 @@
 ﻿#include "c_ui/MainWindow.h"
 #include "c_ui/workbenches/DocumentPage.h"
 #include "c_ui/workbenches/EditPage.h"
+#include "c_ui/workbenches/VolumePage.h"
+#include "c_ui/workbenches/SelectPage.h"
 #include <QApplication>
 #include <QStackedWidget>
 #include <QVBoxLayout>
@@ -46,7 +48,7 @@ CTViewer::~CTViewer() = default;
 
 void CTViewer::buildTitleBar()
 {
-    //拼接新的标签栏
+    //topbar构造
 	auto* topBarContainer = new QWidget(this);
 	auto* topBarLayout = new QVBoxLayout(topBarContainer);
     topBarLayout->setContentsMargins(0, 0, 0, 0);//这句话的作用是去掉边框
@@ -193,7 +195,6 @@ void CTViewer::buildTitleBar()
 			stack_->setCurrentWidget(pageDocument_);//setcurrentwidget是切换当前显示的页面
             statusBar()->showMessage(QStringLiteral("已切换到“文件”功能区"), 3000);
             return;
-			
         }
         else if (index == 2 && pageEdit_) {
 			stack_->setCurrentWidget(pageEdit_);
@@ -205,10 +206,14 @@ void CTViewer::buildTitleBar()
             statusBar()->showMessage(QStringLiteral("已切换到“体积”功能区"), 3000);
             return;
         }
+        else if (index == 4 && pageSelect_) {
+			stack_->setCurrentWidget(pageSelect_);
+			statusBar()->showMessage(QStringLiteral("已切换到“选择”功能区"), 3000);
+            return;
+        }
         else if (index >= 0) {
             statusBar()->showMessage(QStringLiteral("“%1”功能暂未实现").arg(ribbontabBar_->tabText(index)), 1500);
         }
-
 		});
 
     
@@ -289,6 +294,10 @@ void CTViewer::buildCentral()
     stack_->addWidget(pageDocument_);
 	pageEdit_ = new EditPage(stack_);
 	stack_->addWidget(pageEdit_);
+	pageVolume_ = new VolumePage(stack_);
+	stack_->addWidget(pageVolume_);
+    pageSelect_ = new SelectPage(stack_);
+	stack_->addWidget(pageSelect_);
     stack_->setCurrentWidget(pageDocument_);
 
     // ---- 连接 DocumentPage 发出的信号 ----

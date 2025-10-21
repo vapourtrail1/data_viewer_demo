@@ -15,7 +15,7 @@
 #include <QFile>
 
 
-//git 
+
 //static是作用域限定符，表示该函数仅在当前文件内可见，防止命名冲突
 //辅助函数控制换行
 static QString wrapByWidth(const QString& s, const QFont& font, int maxWidthPx) {//第三个参数为一行允许的最大像素宽度
@@ -32,7 +32,7 @@ static QString wrapByWidth(const QString& s, const QFont& font, int maxWidthPx) 
 
         // 优先在自然断点处换行
         bool isBreakable = (ch.isSpace() || ch == '/' || ch == '·' || ch == '、');
-        if (lineWidth + (w * 1.2) > maxWidthPx) {
+        if (lineWidth + w  > maxWidthPx) {
             if (!out.isEmpty())
             {
                 flushLineBreak();
@@ -57,24 +57,28 @@ static QIcon loadIconFor(const QString& text) {
         const char* file;
     };
     static const Map map[] = {
-        { QStringLiteral("撤销"),  ":/icons/icons/undo.png" },
-        { QStringLiteral("重做"),  ":/icons/icons/redo.png" },
-        { QStringLiteral("释放内存/清除撤销队列"), ":/icons/icons/free_memory.png" },
-        { QStringLiteral("剪切"),  ":/icons/icons/cut.png" },
-        { QStringLiteral("复制"),  ":/icons/icons/copy.png" },
-        { QStringLiteral("粘贴"),  ":/icons/icons/paste.png" },
-        { QStringLiteral("删除"),  ":/icons/icons/delete.png" },
-        { QStringLiteral("创建对象组"),  ":/icons/icons/create_obj_group.png" },
-        { QStringLiteral("取消对象组"),  ":/icons/icons/cancel_obj_group.png" },
-        { QStringLiteral("转换为"),      ":/icons/icons/trans_pull_down_menu/trans.png" },
-        { QStringLiteral("属性"),        ":/icons/icons/property.png" },
-        { QStringLiteral("旋转"),        ":/icons/icons/spin.png" },
-        { QStringLiteral("移动"),        ":/icons/icons/move.png" },
-        { QStringLiteral("复制可视状态"),":/icons/icons/copy_visible_status.png" },
-        { QStringLiteral("粘贴可视状态"),":/icons/icons/paste_visible_status.png" },
-        { QStringLiteral("复制元信息"),  ":/icons/icons/copy_meta.png" },
-        { QStringLiteral("粘贴元信息"),  ":/icons/icons/paste_meta.png" },
-        { QStringLiteral("动态重命名"),  ":/icons/icons/dynamic_rename.png" },
+        { QStringLiteral("拆分体积"),  ":/volume_icons/icons_other/volume_icons/split_volume.png" },
+        { QStringLiteral("表面测定"),  ":/volume_icons/icons_other/volume_icons/surface_measure_pull_down_menu/surface_measure_and_based_on_iosvalue.png" },
+        { QStringLiteral("删除表面测定"), ":/volume_icons/icons_other/volume_icons/delete_surface_measure.png" },
+        { QStringLiteral("体积数据"),  ":/volume_icons_2/icons_other/volume_icons/volume_data_pull_down_menu/volume_data.png" },
+        { QStringLiteral("基于特征的缩放"),  ":/volume_icons/icons_other/volume_icons/feature_scale.png" },
+        { QStringLiteral("手动缩放"),  ":/volume_icons/icons_other/volume_icons/manual_scale.png" },
+        { QStringLiteral("绘制数据"),  ":/icons/icons/delete.png" },
+        { QStringLiteral("选择颜色"),  ":/volume_icons/icons_other/volume_icons/choose_color.png" },
+        { QStringLiteral("填充"),  ":/volume_icons/icons_other/volume_icons/fill.png" },
+        { QStringLiteral("自适应高斯"),      ":/volume_icons/icons_other/volume_icons/adaptive_gaussian.png" },
+        { QStringLiteral("非局部均值"),        ":/volume_icons/icons_other/volume_icons/non_local_mean.png" },
+        { QStringLiteral("卷积"),        ":/volume_icons/icons_other/volume_icons/convolution.png" },
+        { QStringLiteral("高斯"),        ":/volume_icons/icons_other/volume_icons/gaussian.png" },
+        { QStringLiteral("框"),":/volume_icons/icons_other/volume_icons/frame.png" },
+        { QStringLiteral("偏差"),":/volume_icons/icons_other/volume_icons/deviation.png" },
+        { QStringLiteral("中值"),  ":/volume_icons/icons_other/volume_icons/mid_value.png" },
+        { QStringLiteral("侵蚀"),  ":/volume_icons/icons_other/volume_icons/erosion.png" },
+        { QStringLiteral("膨胀"),  ":/volume_icons/icons_other/volume_icons/dilation.png" },
+        { QStringLiteral("应用不透明映射"),  ":/volume_icons/icons_other/volume_icons/apply_opacity_mapping.png" },
+        { QStringLiteral("FIB-SEM修正"),  ":/volume_icons/icons_other/volume_icons/FIB-SEM_fix.png" },
+        { QStringLiteral("合并和重新采样"),  ":/volume_icons/icons_other/volume_icons/merge_and_resample.png" },
+        { QStringLiteral("体积投影器"),  ":/volume_icons/icons_other/volume_icons/volume_projector.png" },
     };
 
     qDebug() << "[loadIconFor] text =" << text;
@@ -113,26 +117,26 @@ VolumePage::VolumePage(QWidget* parent)
     layout02->addWidget(buildRibbon02(this));
 
     // 预留的内容区占位，用于后续填充具体的编辑工具界面
-    auto* placeholder02 = new QFrame(this);
-    placeholder02->setObjectName(QStringLiteral("volumeContentPlaceholder"));
-    placeholder02->setStyleSheet(QStringLiteral(
+    auto* placeholder = new QFrame(this);
+    placeholder->setObjectName(QStringLiteral("editContentPlaceholder"));
+    placeholder->setStyleSheet(QStringLiteral(
         "QFrame#editContentPlaceholder{background-color:#1d1d1d; border-radius:8px; border:1px solid #313131;}"
         "QFrame#editContentPlaceholder QLabel{color:#cccccc;}"));
 
-    auto* placeholderLayout02 = new QVBoxLayout(placeholder02);
-    placeholderLayout02->setContentsMargins(0, 0, 0, 0);
-    placeholderLayout02->setSpacing(1);
+    auto* placeholderLayout = new QVBoxLayout(placeholder);
+    placeholderLayout->setContentsMargins(0, 0, 0, 0);
+    placeholderLayout->setSpacing(1);
 
-    auto* title02 = new QLabel(QStringLiteral("体积功能区内容区域"), placeholder02);
-    title02->setStyleSheet(QStringLiteral("font-size:16px; font-weight:600;"));
-    placeholderLayout02->addWidget(title02);
+    auto* title = new QLabel(QStringLiteral("体积功能区内容区域"), placeholder);
+    title->setStyleSheet(QStringLiteral("font-size:16px; font-weight:600;"));
+    placeholderLayout->addWidget(title);
 
-    auto* desc02 = new QLabel(QStringLiteral("这里可以继续扩展体积编辑、几何调整等操作界面。"), placeholder02);
-    desc02->setWordWrap(true);
-    desc02->setStyleSheet(QStringLiteral("font-size:13px;"));
-    placeholderLayout02->addWidget(desc02);
-    placeholderLayout02->addStretch();
-    layout02->addWidget(placeholder02, 1);
+    auto* desc = new QLabel(QStringLiteral("这里可以继续扩展体积编辑、几何调整等操作界面。"), placeholder);
+    desc->setWordWrap(true);
+    desc->setStyleSheet(QStringLiteral("font-size:13px;"));
+    placeholderLayout->addWidget(desc);
+    placeholderLayout->addStretch();
+    layout02->addWidget(placeholder, 1);
 }
 
 QWidget* VolumePage::buildRibbon02(QWidget* parent)
@@ -154,62 +158,77 @@ QWidget* VolumePage::buildRibbon02(QWidget* parent)
     struct RibbonAction02
     {
         QString text;
-        bool hasMenu;
+        int hasMenu;
     };
 
     const QList<RibbonAction02> actions02 = {
-        { QStringLiteral("撤销"), false },
-        { QStringLiteral("重做"), false },
-        { QStringLiteral("释放内存/清除撤销队列"), false },
-        { QStringLiteral("剪切"), false },
-        { QStringLiteral("复制"), false },
-        { QStringLiteral("粘贴"), false },
-        { QStringLiteral("删除"), false },
-        { QStringLiteral("创建对象组"), false },
-        { QStringLiteral("取消对象组"), false },
-        { QStringLiteral("转换为"), true },
-        { QStringLiteral("属性"), false },
-        { QStringLiteral("旋转"), false },
-        { QStringLiteral("移动"), false },
-        { QStringLiteral("复制可视状态"), false },
-        { QStringLiteral("粘贴可视状态"), false },
-        { QStringLiteral("复制元信息"), false },
-        { QStringLiteral("粘贴元信息"), false },
-        { QStringLiteral("动态重命名"), false }
+        { QStringLiteral("拆分体积"), 0 },
+        { QStringLiteral("表面测定"), 1 },
+        { QStringLiteral("删除表面测定"), 0 },
+        { QStringLiteral("体积数据"), 2 },
+        { QStringLiteral("基于特征的缩放"), 0 },
+        { QStringLiteral("手动缩放"), 0 },
+        { QStringLiteral("绘制数据"), 0 },
+        { QStringLiteral("选择颜色"), 0 },
+        { QStringLiteral("填充"), 0 },
+        { QStringLiteral("自适应高斯"), 0 },
+        { QStringLiteral("非局部均值"), 0 },
+        { QStringLiteral("卷积"), 0 },
+        { QStringLiteral("高斯"), 0 },
+        { QStringLiteral("框"), 0 },
+        { QStringLiteral("偏差"), 0 },
+        { QStringLiteral("中值"), 0 },
+        { QStringLiteral("侵蚀"), 0 },
+        { QStringLiteral("膨胀"), 0 },
+        { QStringLiteral("应用不透明度"), 0 },
+        { QStringLiteral("FIB-SEM 修正"), 0 },
+        { QStringLiteral("合并和重新采样"), 0 },
+        { QStringLiteral("体积投影器"), 0 }
     };
 
 
     for (const auto& action : actions02) {
         // 每个功能都使用图标,文字的形式展示
         auto* button = new QToolButton(ribbon02);
-        QString wrappedText = wrapByWidth(action.text, button->font(), 70);
+        QString wrappedText = wrapByWidth(action.text, button->font(), 51);
         button->setText(wrappedText);
         button->setIcon(loadIconFor(action.text));
         button->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-        button->setIconSize(QSize(48, 48));
-        button->setMinimumSize(QSize(85, 95));
+        button->setIconSize(QSize(40, 40));
+        button->setMinimumSize(QSize(70, 90));
 
 
-        if (action.hasMenu) {
+        if (action.hasMenu == 1) {
             // 转换为功能 需要后期拓展
             auto* menu = new QMenu(button);
             menu->setStyleSheet(QStringLiteral(
                 "QMenu{background:#2b2b2b; border:1px solid #3a3a3a;}"
                 "QMenu::item{color:#e0e0e0; padding:6px 24px;}"
                 "QMenu::item:selected{background:#3a3a3a;}"));
-            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/volume.png"), QStringLiteral("体积"));
-            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/volume_grid.png"), QStringLiteral("四面体体积网格"));
-            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/surface_grid.png"), QStringLiteral("表面网格"));
-            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/CAD.png"), QStringLiteral("CAD"));
-            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/golden_surface.png"), QStringLiteral("黄金表面"));
-            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/analysis_surface.png"), QStringLiteral("分析结果中的有色表面网格"));
-            menu->addAction(QIcon(":/icons/icons/trans_pull_down_menu/integration_grid.png"), QStringLiteral("来自四面体体积网格的集成网格"));
+            menu->addAction(QIcon(":/volume_icons/icons_other/volume_icons/surface_measure_pull_down_menu/surface_measure_and_based_on_iosvalue.png"), QStringLiteral("基于等值"));
+            menu->addAction(QIcon(":/volume_icons/icons_other/volume_icons/surface_measure_pull_down_menu/advanced_classic.png"), QStringLiteral("高级(经典)"));
+            menu->addAction(QIcon(":/volume_icons/icons_other/volume_icons/surface_measure_pull_down_menu/advanced_multi_material.png"), QStringLiteral("高级(多材料)"));
+            menu->addAction(QIcon(":/volume_icons/icons_other/volume_icons/surface_measure_pull_down_menu/fixed_contour.png"), QStringLiteral("固定轮廓"));
+            menu->addAction(QIcon(":/volume_icons/icons_other/volume_icons/surface_measure_pull_down_menu/edit_surface_measure.png"), QStringLiteral("编辑表面测定"));
             button->setMenu(menu);
+            button->setPopupMode(QToolButton::InstantPopup);//点击按钮时直接弹出菜单
+        }
+        if (action.hasMenu == 2) {
+            auto* menu02 = new QMenu(button);
+            menu02->setStyleSheet(QStringLiteral(
+                "QMenu{background:#2b2b2b; border:1px solid #3a3a3a;}"
+                "QMenu::item{color:#e0e0e0; padding:6px 24px;}"
+                "QMenu::item:selected{background:#3a3a3a;}"));
+            menu02->addAction(QIcon(":/volume_icons_2/icons_other/volume_icons/volume_data_pull_down_menu/volume_data.png"), QStringLiteral("体积数据"));
+            menu02->addAction(QIcon(":/volume_icons/icons_other/volume_icons/volume_data_pull_down_menu/create_synthetic_volume_data.png"), QStringLiteral("创建合成体积数据"));
+            menu02->addAction(QIcon(":/volume_icons/icons_other/volume_icons/volume_data_pull_down_menu/delete_volume_data.png"), QStringLiteral("删除体积数据"));
+            menu02->addAction(QIcon(":/volume_icons_2/icons_other/volume_icons/volume_data_pull_down_menu/uninstall_volume_data.png"), QStringLiteral("卸载体积数据"));
+            menu02->addAction(QIcon(":/volume_icons/icons_other/volume_icons/volume_data_pull_down_menu/reload_volume_data.png"), QStringLiteral("重新加载体积数据"));
+            button->setMenu(menu02);
             button->setPopupMode(QToolButton::InstantPopup);//点击按钮时直接弹出菜单
         }
         layout02->addWidget(button);
     }
-
     layout02->addStretch();
     return ribbon02;
 }

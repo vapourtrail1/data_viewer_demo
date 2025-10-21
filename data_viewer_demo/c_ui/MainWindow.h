@@ -10,6 +10,7 @@
 class DocumentPage;
 class EditPage;
 class VolumePage;
+class SelectPage;
 
 class CTViewer : public QMainWindow
 {
@@ -49,4 +50,5 @@ private:
 	QPointer<DocumentPage> pageDocument_;//文档页面的指针
 	QPointer<EditPage> pageEdit_;
 	QPointer<VolumePage> pageVolume_;
+	QPointer<SelectPage> pageSelect_;
 };

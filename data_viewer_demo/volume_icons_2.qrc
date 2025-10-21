@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/volume_icons_2">
+        <file>icons_other/volume_icons/volume_data_pull_down_menu/uninstall_volume_data.png</file>
+        <file>icons_other/volume_icons/volume_data_pull_down_menu/volume_data.png</file>
+    </qresource>
+</RCC>

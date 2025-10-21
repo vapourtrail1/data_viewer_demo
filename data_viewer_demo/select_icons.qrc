@@ -1,0 +1,23 @@
+<RCC>
+    <qresource prefix="/select_icons">
+        <file>icons_other/select_icons/apply_draw_and_segmentation_model.png</file>
+        <file>icons_other/select_icons/crack_segmentation.png</file>
+        <file>icons_other/select_icons/deep_segmentation.png</file>
+        <file>icons_other/select_icons/draw.png</file>
+        <file>icons_other/select_icons/draw_segmentation.png</file>
+        <file>icons_other/select_icons/ellipse.png</file>
+        <file>icons_other/select_icons/ellipse3D.png</file>
+        <file>icons_other/select_icons/erosion_dilation.png</file>
+        <file>icons_other/select_icons/fix.png</file>
+        <file>icons_other/select_icons/lasso.png</file>
+        <file>icons_other/select_icons/navigation_cursor.png</file>
+        <file>icons_other/select_icons/paste_with_option_ROI.png</file>
+        <file>icons_other/select_icons/polyline.png</file>
+        <file>icons_other/select_icons/polyline3D.png</file>
+        <file>icons_other/select_icons/rectangle.png</file>
+        <file>icons_other/select_icons/rectangle3D.png</file>
+        <file>icons_other/select_icons/round_rectangle.png</file>
+        <file>icons_other/select_icons/scale.png</file>
+        <file>icons_other/select_icons/smooth_process.png</file>
+    </qresource>
+</RCC>

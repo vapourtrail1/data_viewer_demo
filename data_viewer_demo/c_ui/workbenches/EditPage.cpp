@@ -190,7 +190,7 @@ QWidget* EditPage::buildRibbon(QWidget* parent)
         button->setIcon(loadIconFor(action.text));
         button->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
         button->setIconSize(QSize(48, 48));
-        button->setMinimumSize(QSize(85, 95));
+        button->setMinimumSize(QSize(85, 90));
 
        
         if (action.hasMenu) {

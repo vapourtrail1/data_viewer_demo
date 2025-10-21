@@ -17,10 +17,6 @@ public:
 	explicit VolumePage(QWidget* parent = nullptr);
 
 private:
-	QWidget* buildRibbon02(QWidget* parent);//¸¨Öúº¯Êý
-
-
-
-
+	QWidget* buildRibbon02(QWidget* parent);
 
 };
