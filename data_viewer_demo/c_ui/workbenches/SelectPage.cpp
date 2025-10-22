@@ -153,7 +153,7 @@ SelectPage::SelectPage(QWidget* parent)
 
 QWidget* SelectPage::buildRibbon03(QWidget* parent)
 {
-    auto* ribbon03 = new QFrame(parent);
+	auto* ribbon03 = new QFrame(parent);//ribbon03是--功能区的容器
     ribbon03->setObjectName(QStringLiteral("editRibbon"));
     ribbon03->setStyleSheet(QStringLiteral(
         "QFrame#editRibbon{background-color:#322F30; border-radius:8px; border:1px solid #2b2b2b;}"
@@ -163,7 +163,10 @@ QWidget* SelectPage::buildRibbon03(QWidget* parent)
     layout03->setContentsMargins(4, 4, 4, 4);
     layout03->setSpacing(1);
 
-    struct RibbonAction03 { QString text; int hasMenu; };
+    struct RibbonAction03 {
+        QString text; 
+        int hasMenu; 
+    };
 
     const QList<RibbonAction03> actions03 = {
         { QStringLiteral("导航光标"), 0 },
@@ -193,6 +196,7 @@ QWidget* SelectPage::buildRibbon03(QWidget* parent)
         { QStringLiteral("缩放"), 0 },
         { QStringLiteral("修正"), 0 },
 
+        //这个也一列两个
         { QStringLiteral("添加ROI到ROI"), 0 },
         { QStringLiteral("从ROI减去ROI"), 0 },
         { QStringLiteral("拆分ROI"), 0 },
@@ -209,6 +213,7 @@ QWidget* SelectPage::buildRibbon03(QWidget* parent)
         { QStringLiteral("ROI模板"), 5 },
     };
 
+    // 需要做成两行四列的那 8 个按钮
     const QStringList twoRowGroup = {
         QStringLiteral("矩形"),
         QStringLiteral("圆角矩形"),
@@ -217,90 +222,159 @@ QWidget* SelectPage::buildRibbon03(QWidget* parent)
         QStringLiteral("多边形套索"),
         QStringLiteral("折线3D"),
         QStringLiteral("矩形3D"),
-        QStringLiteral("椭圆3D"),
-
-        /*QStringLiteral("添加ROI到ROI"), 
-        QStringLiteral("从ROI减去ROI"),
-        QStringLiteral("拆分ROI"), 
-        QStringLiteral("清理ROI"), 
-        QStringLiteral("ROI与ROI相交"),
-        QStringLiteral("合并ROI"), 
-        QStringLiteral("反转ROI"),
-        QStringLiteral("更改ROI精度"),
-        QStringLiteral("提取ROI"),
-        QStringLiteral("重新采样ROI"),
-        QStringLiteral("ROI渲染"), 
-        QStringLiteral("粘贴带选项的ROI")*/
+        QStringLiteral("椭圆3D")
+        // 如果你想把“椭圆3D”也放进来，把上面行数调成 2×5 或替换掉其中一个即可
     };
 
-    // 这个容器在第一次遇到分组项时插入到主横向布局，里面用 Grid 摆 2×4
-    QWidget* gridHolder = nullptr;
-    QGridLayout* grid = nullptr;
-    int groupedCount = 0;
 
-    auto makeButton = [&](const RibbonAction03& action) {
-        auto* btn = new QToolButton(ribbon03);
-        btn->setIcon(loadIconFor(action.text));
+    const QStringList twoRowGroup02 = {
+		QStringLiteral("添加ROI到ROI"),
+		QStringLiteral("从ROI减去ROI"),
+		QStringLiteral("拆分ROI"),
+		QStringLiteral("清理ROI"),
+		QStringLiteral("ROI与ROI相交"),
+		QStringLiteral("合并ROI"),
+		QStringLiteral("反转ROI"),
+		QStringLiteral("更改ROI精度"),
+		QStringLiteral("提取ROI"),
+		QStringLiteral("重新采样ROI"),
+		QStringLiteral("ROI渲染"),
+		QStringLiteral("粘贴带选项的ROI"),
+    };
 
-        // 默认：图标在上、文字在下（和你现在一致）
-        btn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-        btn->setIconSize(QSize(40, 40));
-        btn->setMinimumSize(QSize(70, 90));
-        btn->setText(wrapByWidth(action.text, btn->font(), 51));
+	QWidget* gridHolder = nullptr;//这个指针的意思是 用来承载那个 2×4 的小方阵
+	QGridLayout* grid = nullptr;//这个指针是用来管理那个小方阵的布局
+	int groupedCount = 0;//记录已经放进小方阵的按钮数量
 
-        // 如果是进两行组：图标在左、文字在右，做紧凑样式
-        if (twoRowGroup.contains(action.text)) {
-            btn->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-            btn->setIconSize(QSize(20, 20));           // 小 icon
-            btn->setMinimumSize(QSize(102, 32));       // 扁而宽
-            btn->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-            btn->setText(action.text);                // 旁边排文字，一般不需要换行
+    for (const auto& action : actions03) {
+		const bool inGroup = twoRowGroup.contains(action.text);//contains函数检查某个元素是否在列表中 返回true或false
+		const bool inGroup02 = twoRowGroup02.contains(action.text);
+    
+        auto* button = new QToolButton(ribbon03);
+        button->setIcon(loadIconFor(action.text));
+        button->setIconSize(QSize(40, 40));
+        button->setMinimumSize(QSize(70, 90));
+        button->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+        button->setText(wrapByWidth(action.text, button->font(), 51));
+
+        if (inGroup) {
+            if (!gridHolder) {//等价于gridholder == nullptr
+                gridHolder = new QWidget(ribbon03);
+                grid = new QGridLayout(gridHolder);
+                grid->setContentsMargins(4, 2, 4, 2);
+                grid->setHorizontalSpacing(8);//水平间距
+                grid->setVerticalSpacing(4);//垂直间距
+                layout03->addWidget(gridHolder); // 把小方阵插入到主 ribbon
+            }
+            button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+            button->setIconSize(QSize(20, 20));           // 小 icon
+            button->setMinimumSize(QSize(102, 32));       // 扁而宽
+            button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);//
+            button->setText(action.text);                 // 旁排文字，不再换行
+
+            int row = groupedCount / 4;
+            int col = groupedCount % 4;
+            grid->addWidget(button, row, col);//三个参数的意思是：要添加的控件、行号、列号
+            ++groupedCount;
+        }
+   //     if (inGroup02) {
+   //         if (!gridHolder)
+   //         {
+   //             gridHolder = new QWidget(ribbon03);
+			//	grid = new QGridLayout(gridHolder);//QGridLayout的作用是把控件放在一个网格里
+			//	grid->setContentsMargins(4, 2, 4, 2);
+   //             grid->setHorizontalSpacing(8);
+			//	grid->setVerticalSpacing(4);
+   //             layout03->addWidget(gridHolder);
+   //         }
+			//button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+			//button->setIconSize(QSize(20, 20));           // 小 icon
+			//button->setMinimumSize(QSize(102, 20));	  
+   //         button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+			//button->setText(action.text);                 // 旁排文字，不再换行
+
+			//int row = groupedCount / 4;
+			//int col = groupedCount % 4;
+
+   //         //布局管理  grid
+   //         grid->addWidget(button, row, col);
+   //         ++groupedCount;
+   //     }
+        else {
+            // 非该分组：仍旧一行横排
+            layout03->addWidget(button);
         }
 
-        // 菜单
-        if (action.hasMenu == 1 || action.hasMenu == 2 || action.hasMenu == 3
-            || action.hasMenu == 4 || action.hasMenu == 5) {
-            auto* menu = new QMenu(btn);
+        if (action.hasMenu == 1) {
+            auto* menu = new QMenu(button);
             menu->setStyleSheet(QStringLiteral(
                 "QMenu{background:#2b2b2b; border:1px solid #3a3a3a;}"
                 "QMenu::item{color:#e0e0e0; padding:6px 24px;}"
                 "QMenu::item:selected{background:#3a3a3a;}"));
-            btn->setMenu(menu);
-            btn->setPopupMode(QToolButton::InstantPopup);
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/clip_pull_down_menu/clip_plane.png"), QStringLiteral("裁剪平面"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/clip_pull_down_menu/clip_frame.png"), QStringLiteral("裁剪框"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/clip_pull_down_menu/clip_polyline3D.png"), QStringLiteral("裁剪折线3D"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/clip_pull_down_menu/clip_sphere.png"), QStringLiteral("裁剪球体"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/clip_pull_down_menu/clip_cylinder.png"), QStringLiteral("裁剪圆柱"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/clip_pull_down_menu/aligned_clip_frame.png"), QStringLiteral("对齐的裁剪框"));
+            button->setMenu(menu);
+            button->setPopupMode(QToolButton::InstantPopup);
         }
-        return btn;
-        };
-
-    for (const auto& action : actions03) {
-        const bool inGroup = twoRowGroup.contains(action.text);
-
-        if (inGroup) {
-            if (!gridHolder) { // 首次遇到分组项：创建并插入一个小容器
-                gridHolder = new QWidget(ribbon03);
-                grid = new QGridLayout(gridHolder);
-                grid->setContentsMargins(4, 2, 4, 2);
-                grid->setHorizontalSpacing(8);
-                grid->setVerticalSpacing(4);
-                layout03->addWidget(gridHolder);      // 把“方阵”插入到主 ribbon 的当前位置
-            }
-            auto* btn = makeButton(action);
-            int row = groupedCount / 4;               // 2 行 × 4 列
-            int col = groupedCount % 4;
-            if (row < 2) {
-                grid->addWidget(btn, row, col);
-            }
-            else {
-                // 超过 8 个就自动换到第 3 行（你只要 8 个的话，把列表减到 8 个即可）
-                grid->addWidget(btn, row, col);
-            }
-            ++groupedCount;
+        if (action.hasMenu == 2) {
+            auto* menu = new QMenu(button);
+            menu->setStyleSheet(QStringLiteral(
+                "QMenu{background:#2b2b2b; border:1px solid #3a3a3a;}"
+                "QMenu::item{color:#e0e0e0; padding:6px 24px;}"
+                "QMenu::item:selected{background:#3a3a3a;}"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/choose_obj_3D_pull_down_menu/rectangle2.png"), QStringLiteral("矩形"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/choose_obj_3D_pull_down_menu/ellipse2.png"), QStringLiteral("椭圆"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/choose_obj_3D_pull_down_menu/lasso2.png"), QStringLiteral("套索"));
+            button->setMenu(menu);
+            button->setPopupMode(QToolButton::InstantPopup);
         }
-        else {
-            // 不是两行组的，沿用原来的一行横排
-            layout03->addWidget(makeButton(action));
+        if (action.hasMenu == 3) {
+            auto* menu = new QMenu(button);
+            menu->setStyleSheet(QStringLiteral(
+                "QMenu{background:#2b2b2b; border:1px solid #3a3a3a;}"
+                "QMenu::item{color:#e0e0e0; padding:6px 24px;}"
+                "QMenu::item:selected{background:#3a3a3a;}"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/from_grayscale_value_ROI_pull_down_menu/region_grow.png"), QStringLiteral("区域生长"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/from_grayscale_value_ROI_pull_down_menu/material_region_grow.png"), QStringLiteral("材料区域生长"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/from_grayscale_value_ROI_pull_down_menu/grayscale_value_range.png"), QStringLiteral("灰度值范围"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/from_grayscale_value_ROI_pull_down_menu/adaptive_rectangle.png"), QStringLiteral("自适应矩形"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/from_grayscale_value_ROI_pull_down_menu/adaptive_polygon.png"), QStringLiteral("自适应多边形"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/from_grayscale_value_ROI_pull_down_menu/adaptive_line.png"), QStringLiteral("自适应线"));
+            button->setMenu(menu);
+            button->setPopupMode(QToolButton::InstantPopup);
+        }
+        if (action.hasMenu == 4) {
+            auto* menu = new QMenu(button);
+            menu->setStyleSheet(QStringLiteral(
+                "QMenu{background:#2b2b2b; border:1px solid #3a3a3a;}"
+                "QMenu::item{color:#e0e0e0; padding:6px 24px;}"
+                "QMenu::item:selected{background:#3a3a3a;}"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/from_obj_ROI_pull_down_menu/from_volume_CAD_grid_ROI.png"), QStringLiteral("来自体积/CAD/网格的ROI"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/from_obj_ROI_pull_down_menu/from_clip_obj_ROI.png"), QStringLiteral("来自裁剪对象的ROI"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/from_obj_ROI_pull_down_menu/from_defect_mask_ROI.png"), QStringLiteral("来自缺陷掩模的ROI"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/from_obj_ROI_pull_down_menu/from_designed_part_compare_mask_ROI.png"), QStringLiteral("来自设计件/实物比较掩模的ROI"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/from_obj_ROI_pull_down_menu/from_wall_thick_mask_ROI.png"), QStringLiteral("来自壁厚掩模的ROI"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/from_obj_ROI_pull_down_menu/from_CAD_choose_ROI.png"), QStringLiteral("来自CAD选择的ROI"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/from_obj_ROI_pull_down_menu/from_geometry_element_ROI.png"), QStringLiteral("来自几何元素的ROI"));
+            button->setMenu(menu);
+            button->setPopupMode(QToolButton::InstantPopup);
+        }
+        if (action.hasMenu == 5) {
+            auto* menu = new QMenu(button);
+            menu->setStyleSheet(QStringLiteral(
+                "QMenu{background:#2b2b2b; border:1px solid #3a3a3a;}"
+                "QMenu::item{color:#e0e0e0; padding:6px 24px;}"
+                "QMenu::item:selected{background:#3a3a3a;}"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/ROI_template_pull_down_menu/input_ROI_template.png"), QStringLiteral("导入ROI模型"));
+            menu->addAction(QIcon(":/select_icons_2/icons_other/select_icons/ROI_template_pull_down_menu/output_ROI_template.png"), QStringLiteral("导出ROI模型"));
+            button->setMenu(menu);
+            button->setPopupMode(QToolButton::InstantPopup);
         }
     }
-
     layout03->addStretch();
     return ribbon03;
 }
