@@ -8,7 +8,7 @@
 #include <QDebug>
 #include <QFile>
 
-//git 
+//git t
 class QToolButton;
 
 class AlignmentPage : public QWidget

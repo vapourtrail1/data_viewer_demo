@@ -54,5 +54,4 @@ private:
 	QPointer<SelectPage> pageSelect_;
     QPointer<AlignmentPage> pageAlignment_;
 };
-
-//git
+//gitt

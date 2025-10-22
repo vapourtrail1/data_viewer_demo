@@ -226,7 +226,7 @@ void CTViewer::buildTitleBar()
         }
 		});
 
-    //git
+    //gitt
     updateMaximizeButtonIcon();
 }
 

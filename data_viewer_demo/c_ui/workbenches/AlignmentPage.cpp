@@ -15,7 +15,7 @@
 #include <QFile>
 
 
-//git
+//gitt
 //static是作用域限定符，表示该函数仅在当前文件内可见，防止命名冲突
 //辅助函数控制换行
 static QString wrapByWidth(const QString& s, const QFont& font, int maxWidthPx) {//第三个参数为一行允许的最大像素宽度
@@ -25,11 +25,10 @@ static QString wrapByWidth(const QString& s, const QFont& font, int maxWidthPx) 
 
     auto flushLineBreak = [&]() { out += QChar('\n');
     lineWidth = 0; };
-
     for (int i = 0; i < s.size(); ++i) {
         const QChar ch = s.at(i);//获得指定位置的字符
         int w = fm.horizontalAdvance(ch);//该字符在当前字体下的像素宽度
-
+        
         // 优先在自然断点处换行
         bool isBreakable = (ch.isSpace() || ch == '/' || ch == '·' || ch == '、');
         if (lineWidth + w > maxWidthPx) {
