@@ -72,7 +72,7 @@ static QIcon loadIconFor(const QString& text) {
         { QStringLiteral("来自灰度值的ROI"),        ":/select_icons_2/icons_other/select_icons/from_grayscale_value_ROI_pull_down_menu/region_grow.png" },
         { QStringLiteral("来自对象的ROI"),":/select_icons_2/icons_other/select_icons/from_obj_ROI_pull_down_menu/from_obj_ROI.png" },
         { QStringLiteral("绘制&分割"),":/select_icons/icons_other/select_icons/draw_segmentation.png" },
-        { QStringLiteral("应用绘制与分割模型"),  ":/select_icons/icons_other/select_icons/apply_draw_and_segmentation_model.png" },
+        { QStringLiteral("绘制分割应用"),  ":/select_icons/icons_other/select_icons/apply_draw_and_segmentation_model.png" },
         { QStringLiteral("深度分割"),  ":/select_icons/icons_other/select_icons/deep_segmentation.png" },
         { QStringLiteral("侵蚀/膨胀"),  ":/select_icons/icons_other/select_icons/erosion_dilation.png" },
         { QStringLiteral("平滑处理"),  ":/select_icons/icons_other/select_icons/smooth_process.png" },
@@ -153,7 +153,7 @@ SelectPage::SelectPage(QWidget* parent)
 
 QWidget* SelectPage::buildRibbon03(QWidget* parent)
 {
-	auto* ribbon03 = new QFrame(parent);//ribbon03是--功能区的容器
+    auto* ribbon03 = new QFrame(parent);//ribbon03是--功能区的容器
     ribbon03->setObjectName(QStringLiteral("editRibbon"));
     ribbon03->setStyleSheet(QStringLiteral(
         "QFrame#editRibbon{background-color:#322F30; border-radius:8px; border:1px solid #2b2b2b;}"
@@ -164,8 +164,8 @@ QWidget* SelectPage::buildRibbon03(QWidget* parent)
     layout03->setSpacing(1);
 
     struct RibbonAction03 {
-        QString text; 
-        int hasMenu; 
+        QString text;
+        int hasMenu;
     };
 
     const QList<RibbonAction03> actions03 = {
@@ -188,8 +188,10 @@ QWidget* SelectPage::buildRibbon03(QWidget* parent)
         { QStringLiteral("来自灰度值的ROI"), 3 },
         { QStringLiteral("来自对象的ROI"), 4 },
         { QStringLiteral("绘制&分割"), 0 },
-        { QStringLiteral("应用绘制与分割模型"), 0 },
+        { QStringLiteral("绘制分割应用"), 0 },
         { QStringLiteral("深度分割"), 0 },
+
+        //排列成两行3列
         { QStringLiteral("侵蚀/膨胀"), 0 },
         { QStringLiteral("平滑处理"), 0 },
         { QStringLiteral("裂纹分割"), 0 },
@@ -228,36 +230,57 @@ QWidget* SelectPage::buildRibbon03(QWidget* parent)
 
 
     const QStringList twoRowGroup02 = {
-		QStringLiteral("添加ROI到ROI"),
-		QStringLiteral("从ROI减去ROI"),
-		QStringLiteral("拆分ROI"),
-		QStringLiteral("清理ROI"),
-		QStringLiteral("ROI与ROI相交"),
-		QStringLiteral("合并ROI"),
-		QStringLiteral("反转ROI"),
-		QStringLiteral("更改ROI精度"),
-		QStringLiteral("提取ROI"),
-		QStringLiteral("重新采样ROI"),
-		QStringLiteral("ROI渲染"),
-		QStringLiteral("粘贴带选项的ROI"),
+        QStringLiteral("添加ROI到ROI"),
+        QStringLiteral("从ROI减去ROI"),
+        QStringLiteral("拆分ROI"),
+        QStringLiteral("清理ROI"),
+        QStringLiteral("ROI与ROI相交"),
+        QStringLiteral("合并ROI"),
+        QStringLiteral("反转ROI"),
+        QStringLiteral("更改ROI精度"),
+        QStringLiteral("提取ROI"),
+        QStringLiteral("重新采样ROI"),
+        QStringLiteral("ROI渲染"),
+        QStringLiteral("粘贴带选项的ROI"),
+    };
+
+
+    const QStringList twoRowGroup03 =
+    {
+         QStringLiteral("侵蚀/膨胀"),
+         QStringLiteral("平滑处理"), 
+         QStringLiteral("裂纹分割"), 
+         QStringLiteral("缩放"), 
+         QStringLiteral("修正"), 
     };
 
 	QWidget* gridHolder = nullptr;//这个指针的意思是 用来承载那个 2×4 的小方阵
 	QGridLayout* grid = nullptr;//这个指针是用来管理那个小方阵的布局
 	int groupedCount = 0;//记录已经放进小方阵的按钮数量
 
-    for (const auto& action : actions03) {
+    QWidget* gridHolder02 = nullptr;
+    QGridLayout* grid02 = nullptr;
+	int groupedCount02 = 0;
+
+    QWidget* gridHolder03 = nullptr;
+    QGridLayout* grid03 = nullptr;
+    int groupedCount03 = 0;
+
+    for (const auto& action : actions03) 
+    {
 		const bool inGroup = twoRowGroup.contains(action.text);//contains函数检查某个元素是否在列表中 返回true或false
 		const bool inGroup02 = twoRowGroup02.contains(action.text);
+        const bool inGroup03 = twoRowGroup03.contains(action.text);
     
         auto* button = new QToolButton(ribbon03);
         button->setIcon(loadIconFor(action.text));
-        button->setIconSize(QSize(40, 40));
-        button->setMinimumSize(QSize(70, 90));
+        button->setIconSize(QSize(32, 32));
+        button->setMinimumSize(QSize(59, 90));
         button->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-        button->setText(wrapByWidth(action.text, button->font(), 51));
+        button->setText(wrapByWidth(action.text, button->font(), 43));
 
-        if (inGroup) {
+        if (inGroup) 
+        {
             if (!gridHolder) {//等价于gridholder == nullptr
                 gridHolder = new QWidget(ribbon03);
                 grid = new QGridLayout(gridHolder);
@@ -276,30 +299,56 @@ QWidget* SelectPage::buildRibbon03(QWidget* parent)
             int col = groupedCount % 4;
             grid->addWidget(button, row, col);//三个参数的意思是：要添加的控件、行号、列号
             ++groupedCount;
+            continue;
         }
-   //     if (inGroup02) {
-   //         if (!gridHolder)
-   //         {
-   //             gridHolder = new QWidget(ribbon03);
-			//	grid = new QGridLayout(gridHolder);//QGridLayout的作用是把控件放在一个网格里
-			//	grid->setContentsMargins(4, 2, 4, 2);
-   //             grid->setHorizontalSpacing(8);
-			//	grid->setVerticalSpacing(4);
-   //             layout03->addWidget(gridHolder);
-   //         }
-			//button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-			//button->setIconSize(QSize(20, 20));           // 小 icon
-			//button->setMinimumSize(QSize(102, 20));	  
-   //         button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-			//button->setText(action.text);                 // 旁排文字，不再换行
+        if (inGroup02) {
+            if (!gridHolder02)
+            {
+                gridHolder02 = new QWidget(ribbon03);
+				grid02 = new QGridLayout(gridHolder02);//QGridLayout的作用是把控件放在一个网格里
+				grid02->setContentsMargins(4, 2, 4, 2);
+                grid02->setHorizontalSpacing(8);
+				grid02->setVerticalSpacing(4);
+                layout03->addWidget(gridHolder02);
+            }
+			button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+			button->setIconSize(QSize(20, 20));           // 小 icon
+			button->setMinimumSize(QSize(129, 20));	  
+            button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+			button->setText(action.text);                 // 旁排文字，不再换行
 
-			//int row = groupedCount / 4;
-			//int col = groupedCount % 4;
+			int row = groupedCount02 / 4;
+			int col = groupedCount02 % 4;
 
-   //         //布局管理  grid
-   //         grid->addWidget(button, row, col);
-   //         ++groupedCount;
-   //     }
+            //布局管理  grid
+            grid02->addWidget(button, row, col);
+            ++groupedCount02;
+            continue;
+        }
+        if (inGroup03) {
+            if (!gridHolder03)
+            {
+                gridHolder03 = new QWidget(ribbon03);
+                grid03 = new QGridLayout(gridHolder03);//QGridLayout的作用是把控件放在一个网格里
+                grid03->setContentsMargins(4, 2, 4, 2);
+                grid03->setHorizontalSpacing(8);
+                grid03->setVerticalSpacing(4);
+                layout03->addWidget(gridHolder03);
+            }
+            button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+            button->setIconSize(QSize(20, 20));           // 小 icon
+            button->setMinimumSize(QSize(90, 20));
+            button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+            button->setText(action.text);                 // 旁排文字，不再换行
+
+            int row = groupedCount03 / 3;
+            int col = groupedCount03 % 3;
+
+            //布局管理  grid
+            grid03->addWidget(button, row, col);
+            ++groupedCount03;
+            continue;
+        }
         else {
             // 非该分组：仍旧一行横排
             layout03->addWidget(button);
@@ -347,7 +396,8 @@ QWidget* SelectPage::buildRibbon03(QWidget* parent)
             button->setMenu(menu);
             button->setPopupMode(QToolButton::InstantPopup);
         }
-        if (action.hasMenu == 4) {
+        if (action.hasMenu == 4) 
+{
             auto* menu = new QMenu(button);
             menu->setStyleSheet(QStringLiteral(
                 "QMenu{background:#2b2b2b; border:1px solid #3a3a3a;}"
@@ -363,7 +413,8 @@ QWidget* SelectPage::buildRibbon03(QWidget* parent)
             button->setMenu(menu);
             button->setPopupMode(QToolButton::InstantPopup);
         }
-        if (action.hasMenu == 5) {
+        if (action.hasMenu == 5)
+        {
             auto* menu = new QMenu(button);
             menu->setStyleSheet(QStringLiteral(
                 "QMenu{background:#2b2b2b; border:1px solid #3a3a3a;}"
@@ -378,23 +429,3 @@ QWidget* SelectPage::buildRibbon03(QWidget* parent)
     layout03->addStretch();
     return ribbon03;
 }
-
-//QIcon EditPage::buildIcon() const
-//{
-//    // 创建一个灰色的方形占位图标，后续替换为真实资源
-//    QPixmap pixmap(48, 48);
-//    pixmap.fill(Qt::transparent);
-//
-//    QPainter painter(&pixmap);
-//    painter.setRenderHint(QPainter::Antialiasing);
-//    painter.setBrush(QColor(QStringLiteral("#4a4a4a")));
-//    painter.setPen(QPen(QColor(QStringLiteral("#6c6c6c")), 2));
-//    painter.drawRoundedRect(pixmap.rect().adjusted(3, 3, -3, -3), 8, 8);
-//
-//    painter.setPen(QPen(QColor(QStringLiteral("#bdbdbd"))));
-//    painter.setFont(QFont(QStringLiteral("Microsoft YaHei"), 8, QFont::Bold));
-//    painter.drawText(pixmap.rect(), Qt::AlignCenter, QStringLiteral("ICON"));
-//
-//    painter.end();
-//    return QIcon(pixmap);
-//}
