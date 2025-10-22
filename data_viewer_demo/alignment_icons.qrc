@@ -1,0 +1,23 @@
+<RCC>
+    <qresource prefix="/alignment_icons">
+        <file>icons_other/align_icons/3-2-1_align.png</file>
+        <file>icons_other/align_icons/apply_align.png</file>
+        <file>icons_other/align_icons/based_on_feature_align.png</file>
+        <file>icons_other/align_icons/based_on_geometry_element_best_fit.png</file>
+        <file>icons_other/align_icons/best_fit_align.png</file>
+        <file>icons_other/align_icons/coordinate_origin.png</file>
+        <file>icons_other/align_icons/coordinate_system_editor.png</file>
+        <file>icons_other/align_icons/copy_transformation.png</file>
+        <file>icons_other/align_icons/edit_current_align.png</file>
+        <file>icons_other/align_icons/in_order_align.png</file>
+        <file>icons_other/align_icons/lock.png</file>
+        <file>icons_other/align_icons/paste_transformation.png</file>
+        <file>icons_other/align_icons/reset_transformation.png</file>
+        <file>icons_other/align_icons/RPS_align.png</file>
+        <file>icons_other/align_icons/simple_3-2-1_align.png</file>
+        <file>icons_other/align_icons/simple_align.png</file>
+        <file>icons_other/align_icons/slice_images_align_to_obj.png</file>
+        <file>icons_other/align_icons/store_align.png</file>
+        <file>icons_other/align_icons/unlock.png</file>
+    </qresource>
+</RCC>

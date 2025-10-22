@@ -337,7 +337,7 @@ QWidget* SelectPage::buildRibbon03(QWidget* parent)
             }
             button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
             button->setIconSize(QSize(20, 20));           // 小 icon
-            button->setMinimumSize(QSize(90, 20));
+            button->setMinimumSize(QSize(95, 20));
             button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
             button->setText(action.text);                 // 旁排文字，不再换行
 

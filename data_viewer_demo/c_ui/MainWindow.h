@@ -11,6 +11,7 @@ class DocumentPage;
 class EditPage;
 class VolumePage;
 class SelectPage;
+class AlignmentPage;
 
 class CTViewer : public QMainWindow
 {
@@ -51,4 +52,5 @@ private:
 	QPointer<EditPage> pageEdit_;
 	QPointer<VolumePage> pageVolume_;
 	QPointer<SelectPage> pageSelect_;
+    QPointer<AlignmentPage> pageAlignment_;
 };

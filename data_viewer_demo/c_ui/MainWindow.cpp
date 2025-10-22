@@ -3,6 +3,7 @@
 #include "c_ui/workbenches/EditPage.h"
 #include "c_ui/workbenches/VolumePage.h"
 #include "c_ui/workbenches/SelectPage.h"
+#include "c_ui/workbenches/AlignmentPage.h"
 #include <QApplication>
 #include <QStackedWidget>
 #include <QVBoxLayout>
@@ -13,6 +14,9 @@
 #include <QMouseEvent>
 #include <QEvent>
 #include <QStringList>
+#include <QGuiApplication>
+#include <QScreen>
+
 
 #if USE_VTK
 #include <QVTKOpenGLNativeWidget.h>
@@ -211,6 +215,12 @@ void CTViewer::buildTitleBar()
 			statusBar()->showMessage(QStringLiteral("已切换到“选择”功能区"), 3000);
             return;
         }
+        else if (index = 5 && pageAlignment_) {
+			stack_->setCurrentWidget(pageAlignment_);
+			statusBar()->showMessage(QStringLiteral("已切换到“对齐”功能区"), 3000);
+            return;
+
+        }
         else if (index >= 0) {
             statusBar()->showMessage(QStringLiteral("“%1”功能暂未实现").arg(ribbontabBar_->tabText(index)), 1500);
         }
@@ -298,7 +308,11 @@ void CTViewer::buildCentral()
 	stack_->addWidget(pageVolume_);
     pageSelect_ = new SelectPage(stack_);
 	stack_->addWidget(pageSelect_);
-    stack_->setCurrentWidget(pageDocument_);
+    /*stack_->setCurrentWidget(pageDocument_);*/
+    pageAlignment_ = new AlignmentPage(stack_);
+    stack_->addWidget(pageAlignment_);
+
+
 
     // ---- 连接 DocumentPage 发出的信号 ----
     connect(pageDocument_, &DocumentPage::moduleClicked, this, [this](const QString& msg) {
@@ -313,6 +327,12 @@ void CTViewer::buildCentral()
         });
 }
 
-// 空函数（为兼容老结构保留）
+// 空函数
 void CTViewer::wireSignals() {}
-void CTViewer::setDefaults() {}
+void CTViewer::setDefaults() {
+    // 在默认显示时把窗口定位到主屏幕的可用区域左上角，避免每次运行都要手动拖动窗口。
+    if (auto* screen = QGuiApplication::primaryScreen()) {
+        const QRect availableGeometry = screen->availableGeometry();
+        move(availableGeometry.topLeft());
+    }
+}
