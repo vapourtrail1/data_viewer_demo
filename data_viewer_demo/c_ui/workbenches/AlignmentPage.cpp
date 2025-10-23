@@ -28,7 +28,6 @@ static QString wrapByWidth(const QString& s, const QFont& font, int maxWidthPx) 
     for (int i = 0; i < s.size(); ++i) {
         const QChar ch = s.at(i);//获得指定位置的字符
         int w = fm.horizontalAdvance(ch);//该字符在当前字体下的像素宽度
-        
         // 优先在自然断点处换行
         bool isBreakable = (ch.isSpace() || ch == '/' || ch == '·' || ch == '、');
         if (lineWidth + w > maxWidthPx) {
@@ -99,7 +98,7 @@ AlignmentPage::AlignmentPage(QWidget* parent)
     // 设置页面外观
     setObjectName(QStringLiteral("alignmentEdit"));
     setStyleSheet(QStringLiteral(
-        "QWidget#pageEdit{background-color:#2b2b2b;}"
+        "QWidget#alignmentEdit{background-color:#2b2b2b;}"
         "QLabel{color:#f0f0f0;}"
         "QToolButton{color:#f7f7f7; border-radius:6px; padding:6px;}"
         "QToolButton:hover{background-color:#3a3a3a;}"));

@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/geometry_icons02">
+        <file>icons_other/geometry_icons/transformation_and_export_pull_down_menu/CAD_from_geomety_element.PNG</file>
+        <file>icons_other/geometry_icons/transformation_and_export_pull_down_menu/geometry_element_export_to_CAD.PNG</file>
+        <file>icons_other/geometry_icons/transformation_and_export_pull_down_menu/geometry_element_export_to_surface_mash.PNG</file>
+        <file>icons_other/geometry_icons/transformation_and_export_pull_down_menu/ROI_from_geomety_element.png</file>
+        <file>icons_other/geometry_icons/transformation_and_export_pull_down_menu/save_fit_point_info.PNG</file>
+        <file>icons_other/geometry_icons/transformation_and_export_pull_down_menu/surface_mash_from_geomety_element.PNG</file>
+        <file>icons_other/geometry_icons/transformation_and_export_pull_down_menu/untitle.PNG</file>
+        <file>icons_other/geometry_icons/update_CM_obj.PNG</file>
+    </qresource>
+</RCC>

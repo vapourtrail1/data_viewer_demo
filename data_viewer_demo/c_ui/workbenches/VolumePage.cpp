@@ -143,9 +143,9 @@ QWidget* VolumePage::buildRibbon02(QWidget* parent)
 {
     // 创建功能区容器
     auto* ribbon02 = new QFrame(parent);
-    ribbon02->setObjectName(QStringLiteral("editRibbon"));
+    ribbon02->setObjectName(QStringLiteral("volumeRibbon"));
     ribbon02->setStyleSheet(QStringLiteral(
-        "QFrame#editRibbon{background-color:#322F30; border-radius:8px; border:1px solid #2b2b2b;}"
+        "QFrame#volumeRibbon{background-color:#322F30; border-radius:8px; border:1px solid #2b2b2b;}"
         "QToolButton{color:#e0e0e0; font-weight:600;}"));
 
     auto* layout02 = new QHBoxLayout(ribbon02);
