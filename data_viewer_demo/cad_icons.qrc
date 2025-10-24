@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/cad_icons">
+        <file>icons_other/CAD_surfacemesh_icons/compensation_mesh.PNG</file>
+        <file>icons_other/CAD_surfacemesh_icons/deformation_field.PNG</file>
+        <file>icons_other/CAD_surfacemesh_icons/deformation_mesh.PNG</file>
+        <file>icons_other/CAD_surfacemesh_icons/delete_lonely_component.PNG</file>
+        <file>icons_other/CAD_surfacemesh_icons/lteration_compensation_mesh.PNG</file>
+        <file>icons_other/CAD_surfacemesh_icons/merge_surface_mesh_obj.PNG</file>
+        <file>icons_other/CAD_surfacemesh_icons/mold_modify.PNG</file>
+        <file>icons_other/CAD_surfacemesh_icons/re-cal_CAD_mesh.PNG</file>
+        <file>icons_other/CAD_surfacemesh_icons/reverse_surface_direction.PNG</file>
+        <file>icons_other/CAD_surfacemesh_icons/simplify_surface_mesh.PNG</file>
+    </qresource>
+</RCC>

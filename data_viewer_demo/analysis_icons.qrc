@@ -1,0 +1,24 @@
+<RCC>
+    <qresource prefix="/analyisis_icons">
+        <file>icons_other/analysis_icons/annotation.PNG</file>
+        <file>icons_other/analysis_icons/battery_analysis.PNG</file>
+        <file>icons_other/analysis_icons/clip_simulation.PNG</file>
+        <file>icons_other/analysis_icons/data_quality.PNG</file>
+        <file>icons_other/analysis_icons/data_volume_cal.PNG</file>
+        <file>icons_other/analysis_icons/design_to_actual_compare.PNG</file>
+        <file>icons_other/analysis_icons/displacement.PNG</file>
+        <file>icons_other/analysis_icons/fiber_recombination_material.PNG</file>
+        <file>icons_other/analysis_icons/grey_value.PNG</file>
+        <file>icons_other/analysis_icons/input_integration_mesh.PNG</file>
+        <file>icons_other/analysis_icons/OCR.PNG</file>
+        <file>icons_other/analysis_icons/P202_P201.PNG</file>
+        <file>icons_other/analysis_icons/P203.PNG</file>
+        <file>icons_other/analysis_icons/paozhuang_fenmu_struct.PNG</file>
+        <file>icons_other/analysis_icons/realtime_value_off.PNG</file>
+        <file>icons_other/analysis_icons/realtime_value_on.PNG</file>
+        <file>icons_other/analysis_icons/slice_area.PNG</file>
+        <file>icons_other/analysis_icons/struct_simulation.PNG</file>
+        <file>icons_other/analysis_icons/update_analysis.PNG</file>
+        <file>icons_other/analysis_icons/wall_thickness.PNG</file>
+    </qresource>
+</RCC>

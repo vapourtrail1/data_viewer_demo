@@ -6,6 +6,8 @@
 #include "c_ui/workbenches/AlignmentPage.h"
 #include "c_ui/workbenches/GeometryPage.h"
 #include "c_ui/workbenches/MeasurePage.h"
+#include "c_ui/workbenches/CADAndThen.h"
+#include "c_ui/workbenches/AnalysisPage.h"
 #include <QApplication>
 #include <QStackedWidget>
 #include <QVBoxLayout>
@@ -232,6 +234,15 @@ void CTViewer::buildTitleBar()
 			statusBar()->showMessage(QStringLiteral("已切换到“测量”功能区"), 3000);
             return;
         }
+        else if (index == 8 && pageCAD_) {
+			stack_->setCurrentWidget(pageCAD_);
+            statusBar()->showMessage(QStringLiteral("已切换到“CAD/表面网格”功能区"));
+            return;
+        }
+        else if (index == 9 && pageAnalysis_) {
+            stack_->setCurrentWidget(pageAnalysis_);
+            statusBar()->showMessage(QStringLiteral("已切换到“分析”功能区"));
+        }
         else if (index >= 0) {
             statusBar()->showMessage(QStringLiteral("“%1”功能暂未实现").arg(ribbontabBar_->tabText(index)), 1500);
         }
@@ -326,6 +337,10 @@ void CTViewer::buildCentral()
     stack_->addWidget(pageGeometry_);
     pageMeasure_ = new MeasurePage(stack_);
     stack_->addWidget(pageMeasure_);
+    pageCAD_ = new CADAndThen(stack_);
+    stack_->addWidget(pageCAD_);
+    pageAnalysis_ = new AnalysisPage(stack_);
+    stack_->addWidget(pageAnalysis_);
 
 
 
