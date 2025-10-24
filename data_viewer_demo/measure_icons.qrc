@@ -1,0 +1,21 @@
+<RCC>
+    <qresource prefix="/measure_icons">
+        <file>icons_other/measure_icons/angularity.PNG</file>
+        <file>icons_other/measure_icons/circle_runout.PNG</file>
+        <file>icons_other/measure_icons/Coaxiality.PNG</file>
+        <file>icons_other/measure_icons/cone_degree.PNG</file>
+        <file>icons_other/measure_icons/Cylindricity.PNG</file>
+        <file>icons_other/measure_icons/flatness.PNG</file>
+        <file>icons_other/measure_icons/line_profile.PNG</file>
+        <file>icons_other/measure_icons/location_degree.PNG</file>
+        <file>icons_other/measure_icons/Parallelism.PNG</file>
+        <file>icons_other/measure_icons/perpendicularity.PNG</file>
+        <file>icons_other/measure_icons/roundness.PNG</file>
+        <file>icons_other/measure_icons/sqhere_degree.PNG</file>
+        <file>icons_other/measure_icons/straightness.PNG</file>
+        <file>icons_other/measure_icons/surface_profile.PNG</file>
+        <file>icons_other/measure_icons/symmetry_degree.PNG</file>
+        <file>icons_other/measure_icons/total_runout.PNG</file>
+        <file>icons_other/measure_icons/option_pull_down_menu/tolerance_visible_setting.png</file>
+    </qresource>
+</RCC>

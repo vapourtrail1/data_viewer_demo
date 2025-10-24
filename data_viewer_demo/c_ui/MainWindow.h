@@ -13,6 +13,7 @@ class VolumePage;
 class SelectPage;
 class AlignmentPage;
 class GeometryPage;
+class MeasurePage;
 
 class CTViewer : public QMainWindow
 {
@@ -55,5 +56,6 @@ private:
 	QPointer<SelectPage> pageSelect_;
     QPointer<AlignmentPage> pageAlignment_;
     QPointer<GeometryPage> pageGeometry_;
+    QPointer<MeasurePage> pageMeasure_;
 };
 //gitt

@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/measure_icons03">
+        <file>icons_other/measure_icons/option_pull_down_menu/tolerance_visible_setting.png</file>
+        <file>icons_other/measure_icons/measure_template_pull_down_menu/output_measure_template.png</file>
+    </qresource>
+</RCC>
