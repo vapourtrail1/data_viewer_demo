@@ -298,24 +298,24 @@ QWidget* WindowPage::buildRibbon12(QWidget* parent)
                 "QWidget{color:#e0e0e0;}"
                 "QCheckBox{padding:6px 24px;}"));
 
-            auto addCheck = [&](const QString& text, bool checked,
-                std::function<void(bool)> onToggled)
-                {
-                    auto* cb = new QCheckBox(text, menu);
+            auto addCheck = [&](const QString& text, bool checked,std::function<void(bool)> onToggled)
+            {//onToggled：用户勾/取消时要做的事（回调）
+                    auto* cb = new QCheckBox(text, menu);//checkbox控件
                     cb->setChecked(checked);
-                    // 让整行都有 hover/选中效果，体验更像菜单项
-                    cb->setAttribute(Qt::WA_Hover, true);
-
-                    auto* wa = new QWidgetAction(menu);
+                    cb->setAttribute(Qt::WA_Hover, true);// 开启悬停事件
+					auto* wa = new QWidgetAction(menu);//菜单默认不能放控件  菜单能放QAction  所以用QWidgetAction包装一下
+                    //能把QCheckbox显示到菜单栏里
                     wa->setDefaultWidget(cb);
                     menu->addAction(wa);
-
                     QObject::connect(cb, &QCheckBox::toggled, menu, [=](bool on) {
-                        if (onToggled) onToggled(on);
-                        });
-                };
+                        if (onToggled)
+                        {
+                            onToggled(on);
+                        }
+                    });
+            };
 
-            // TODO: 用你自己的可见状态初始化 true/false
+           
             addCheck(QStringLiteral("显示/隐藏右侧工具停靠栏"), true, [=](bool on) {
                 // rightDock->setVisible(on);
                 // emit requestToggleDock(Qt::RightDockWidgetArea, on); // 如果你走信号

@@ -244,10 +244,15 @@ void CTViewer::buildTitleBar()
             stack_->setCurrentWidget(pageAnalysis_);
             statusBar()->showMessage(QStringLiteral("已切换到“分析”功能区"));
         }
+        else if (index == 10 && pageReport_) {
+            stack_->setCurrentWidget(pageReport_);
+            statusBar()->showMessage(QStringLiteral("已切换到“报告”功能区"));
+        }
         else if (index == 12 && pageWindow_) {
 			stack_->setCurrentWidget(pageWindow_);
 			statusBar()->showMessage(QStringLiteral("已切换到“窗口”功能区"));
         }
+        
         else if (index >= 0) {
             statusBar()->showMessage(QStringLiteral("“%1”功能暂未实现").arg(ribbontabBar_->tabText(index)), 1500);
         }
@@ -348,6 +353,8 @@ void CTViewer::buildCentral()
     stack_->addWidget(pageAnalysis_);
 	pageWindow_ = new WindowPage(stack_);//这句话的意思是创建一个WindowPage页面，并将其父组件设置为stack_（QStackedWidget的实例）
 	stack_->addWidget(pageWindow_);
+	pageReport_ = new ReportPage(stack_);
+	stack_->addWidget(pageReport_);
 
 
 
