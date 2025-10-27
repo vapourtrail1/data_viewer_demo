@@ -16,6 +16,7 @@ class GeometryPage;
 class MeasurePage;
 class CADAndThen;
 class AnalysisPage;
+class WindowPage;
 
 class CTViewer : public QMainWindow
 {
@@ -61,5 +62,6 @@ private:
     QPointer<MeasurePage> pageMeasure_;
     QPointer<CADAndThen> pageCAD_;
 	QPointer<AnalysisPage> pageAnalysis_;
+    QPointer<WindowPage> pageWindow_;
 };
 //gitt

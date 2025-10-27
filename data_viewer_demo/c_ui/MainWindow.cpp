@@ -8,6 +8,7 @@
 #include "c_ui/workbenches/MeasurePage.h"
 #include "c_ui/workbenches/CADAndThen.h"
 #include "c_ui/workbenches/AnalysisPage.h"
+#include "c_ui/workbenches/WindowPage.h"
 #include <QApplication>
 #include <QStackedWidget>
 #include <QVBoxLayout>
@@ -243,6 +244,10 @@ void CTViewer::buildTitleBar()
             stack_->setCurrentWidget(pageAnalysis_);
             statusBar()->showMessage(QStringLiteral("已切换到“分析”功能区"));
         }
+        else if (index == 12 && pageWindow_) {
+			stack_->setCurrentWidget(pageWindow_);
+			statusBar()->showMessage(QStringLiteral("已切换到“窗口”功能区"));
+        }
         else if (index >= 0) {
             statusBar()->showMessage(QStringLiteral("“%1”功能暂未实现").arg(ribbontabBar_->tabText(index)), 1500);
         }
@@ -341,6 +346,8 @@ void CTViewer::buildCentral()
     stack_->addWidget(pageCAD_);
     pageAnalysis_ = new AnalysisPage(stack_);
     stack_->addWidget(pageAnalysis_);
+	pageWindow_ = new WindowPage(stack_);//这句话的意思是创建一个WindowPage页面，并将其父组件设置为stack_（QStackedWidget的实例）
+	stack_->addWidget(pageWindow_);
 
 
 
