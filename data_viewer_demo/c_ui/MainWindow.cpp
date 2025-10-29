@@ -8,6 +8,7 @@
 #include "c_ui/workbenches/MeasurePage.h"
 #include "c_ui/workbenches/CADAndThen.h"
 #include "c_ui/workbenches/AnalysisPage.h"
+#include "c_ui/workbenches/ReportPage.h"
 #include "c_ui/workbenches/WindowPage.h"
 #include <QApplication>
 #include <QStackedWidget>

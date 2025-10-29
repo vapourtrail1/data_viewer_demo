@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/report_icons">
+        <file>icons_other/report_icons/output_Q_DAS_document.png</file>
+        <file>icons_other/report_icons/save_image.png</file>
+        <file>icons_other/report_icons/save_movie_image_stack.png</file>
+        <file>icons_other/report_icons/updata_report.PNG</file>
+        <file>icons_other/report_icons/bookmark_editor.PNG</file>
+        <file>icons_other/report_icons/create_bookmark.PNG</file>
+        <file>icons_other/report_icons/create_report.PNG</file>
+        <file>icons_other/report_icons/delelte_report.PNG</file>
+        <file>icons_other/report_icons/open_report.PNG</file>
+        <file>icons_other/report_icons/output_PDF.PNG</file>
+        <file>icons_other/report_icons/untitle/qq.PNG</file>
+        <file>icons_other/report_icons/untitle/ww.PNG</file>
+        <file>icons_other/report_icons/output_default_layout.png</file>
+        <file>icons_other/report_icons/output_special_layout.png</file>
+        <file>icons_other/report_icons/output_html.png</file>
+    </qresource>
+</RCC>

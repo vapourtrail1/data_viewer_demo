@@ -15,8 +15,6 @@ class ReportPage : public QWidget
 	Q_OBJECT
 public:
 	explicit ReportPage(QWidget* parent = nullptr);
-
 private:
 	QWidget* buildRibbon10(QWidget* parent);
-
 };
