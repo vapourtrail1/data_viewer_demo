@@ -1,6 +1,7 @@
 ﻿#include "ReconstructPage.h"
 #include <QGridLayout>
 #include <QWidget>
+#include "core/common/VtkMacros.h" 
 
 #if USE_VTK
 #include <QVTKOpenGLNativeWidget.h>

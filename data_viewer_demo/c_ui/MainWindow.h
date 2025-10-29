@@ -18,6 +18,8 @@ class CADAndThen;
 class AnalysisPage;
 class WindowPage;
 class ReportPage;
+class AnimationPage;
+class PerformancePage;
 
 class CTViewer : public QMainWindow
 {
@@ -65,5 +67,7 @@ private:
 	QPointer<AnalysisPage> pageAnalysis_;
     QPointer<WindowPage> pageWindow_;
 	QPointer<ReportPage> pageReport_;
+	QPointer<AnimationPage> pageAnimation_;
+	QPointer<PerformancePage> pagePerformance_;
 };
 //gitt

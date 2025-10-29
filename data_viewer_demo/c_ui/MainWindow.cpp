@@ -10,6 +10,9 @@
 #include "c_ui/workbenches/AnalysisPage.h"
 #include "c_ui/workbenches/ReportPage.h"
 #include "c_ui/workbenches/WindowPage.h"
+#include "c_ui/workbenches/AnimationPage.h"
+#include "c_ui/workbenches/PerformancePage.h"
+#include "core/common/VtkMacros.h"
 #include <QApplication>
 #include <QStackedWidget>
 #include <QVBoxLayout>
@@ -22,6 +25,14 @@
 #include <QStringList>
 #include <QGuiApplication>
 #include <QScreen>
+#include <QVTKOpenGLNativeWidget.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkSmartPointer.h>
+#include <vtkSphereSource.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkActor.h>
 
 
 #if USE_VTK
@@ -34,6 +45,8 @@
 CTViewer::CTViewer(QWidget* parent)
     : QMainWindow(parent)
 {
+    
+
     // ---- 无边框窗口 + 深色主题 ----
     setWindowFlag(Qt::FramelessWindowHint);
     setWindowTitle(QStringLiteral("data_viewer_demo"));
@@ -48,11 +61,10 @@ CTViewer::CTViewer(QWidget* parent)
     setDefaults();      // 默认状态
 
     statusBar()->showMessage(QStringLiteral("就绪"));
+
 }
 
 CTViewer::~CTViewer() = default;
-
-
 
 // 自定义标题栏
 
@@ -249,11 +261,19 @@ void CTViewer::buildTitleBar()
             stack_->setCurrentWidget(pageReport_);
             statusBar()->showMessage(QStringLiteral("已切换到“报告”功能区"));
         }
+        /*else if (index == 11 && page) {
+            stack_->setCurrentWidget(pageReport_);
+            statusBar()->showMessage(QStringLiteral("已切换到“报告”功能区"));
+        }*/
         else if (index == 12 && pageWindow_) {
 			stack_->setCurrentWidget(pageWindow_);
 			statusBar()->showMessage(QStringLiteral("已切换到“窗口”功能区"));
         }
-        
+        else if (index == 14 && pagePerformance_) {
+            stack_->setCurrentWidget(pagePerformance_);
+            statusBar()->showMessage(QStringLiteral("已切换到“可视化”功能区"));
+        }
+
         else if (index >= 0) {
             statusBar()->showMessage(QStringLiteral("“%1”功能暂未实现").arg(ribbontabBar_->tabText(index)), 1500);
         }
@@ -356,6 +376,8 @@ void CTViewer::buildCentral()
 	stack_->addWidget(pageWindow_);
 	pageReport_ = new ReportPage(stack_);
 	stack_->addWidget(pageReport_);
+    pagePerformance_ = new PerformancePage(stack_);
+    stack_->addWidget(pagePerformance_);
 
 
 
