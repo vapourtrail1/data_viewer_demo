@@ -87,7 +87,7 @@ static QIcon loadIconFor(const QString& text) {
         { QStringLiteral("提取中轴线"),  ":/geometry_icons/icons_other/geometry_icons/extract_mid_axis.PNG" },
         { QStringLiteral("转化并导出"),  ":/geometry_icons02/icons_other/geometry_icons/transformation_and_export_pull_down_menu/save_fit_point_info.PNG" },
     };
-    qDebug() << "[loadIconFor] text =" << text;
+    
 
     for (const auto& m : map) {
         if (text == m.key) {
@@ -99,7 +99,7 @@ static QIcon loadIconFor(const QString& text) {
             }
         }
     }
-    qDebug() << "no path, use default path";
+    
     return QIcon(":/icons/icons/move.png");
 }
 

@@ -93,7 +93,7 @@ static QIcon loadIconFor(const QString& text) {
         { QStringLiteral("粘贴带选项的ROI"),  ":/select_icons/icons_other/select_icons/paste_with_option_ROI.png" },
         { QStringLiteral("ROI模板"),  ":/select_icons_2/icons_other/select_icons/ROI_template_pull_down_menu/ROI_template.png" },
     };
-    qDebug() << "[loadIconFor] text =" << text;
+    
 
     for (const auto& m : map) {
         if (text == m.key) {
@@ -105,7 +105,7 @@ static QIcon loadIconFor(const QString& text) {
             }
         }
     }
-    qDebug() << "no path, use default path";
+    
     return QIcon(":/icons/icons/move.png");
 }
 

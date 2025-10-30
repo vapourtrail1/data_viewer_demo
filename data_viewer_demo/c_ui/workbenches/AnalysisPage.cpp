@@ -82,7 +82,7 @@ static QIcon loadIconFor(const QString& text) {
         { QStringLiteral("更新所有分析"),  ":/analyisis_icons/icons_other/analysis_icons/update_analysis.PNG" },
     };
 
-    qDebug() << "[loadIconFor] text =" << text;
+   
 
     for (const auto& m : map) {
         if (text == m.key) {
@@ -94,7 +94,7 @@ static QIcon loadIconFor(const QString& text) {
             }
         }
     }
-    qDebug() << "no path, use default path";
+   
     return QIcon(":/icons/icons/move.png");
 }
 

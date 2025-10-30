@@ -75,7 +75,7 @@ static QIcon loadIconFor(const QString& text) {
         { QStringLiteral("Ëø¶¨"),  ":/alignment_icons/icons_other/align_icons/lock.png" },
         { QStringLiteral("½âËø"),  ":/alignment_icons/icons_other/align_icons/unlock.png" },
     };
-    qDebug() << "[loadIconFor] text =" << text;
+    
 
     for (const auto& m : map) {
         if (text == m.key) {
@@ -87,7 +87,7 @@ static QIcon loadIconFor(const QString& text) {
             }
         }
     }
-    qDebug() << "no path, use default path";
+    
     return QIcon(":/icons/icons/move.png");
 }
 

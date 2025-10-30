@@ -38,10 +38,12 @@
 #include <vtkSphereSource.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkActor.h>
+//#include <vtkOpenGLGPUVolumeRayCastMapper.h>
+//#include <vtkAutoInit.h>
 #endif 
 
 
-
+//VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2);
 
 // 构造函数
 CTViewer::CTViewer(QWidget* parent)

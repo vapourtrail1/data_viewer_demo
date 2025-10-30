@@ -71,7 +71,7 @@ static QIcon loadIconFor(const QString& text) {
         { QStringLiteral("保存影片/图像堆栈"),        ":/report_icons/icons_other/report_icons/save_movie_image_stack.png" },
         { QStringLiteral("导出为Q-DAS文件"),        ":/report_icons/icons_other/report_icons/output_Q_DAS_document.png" },
     };
-    qDebug() << "[loadIconFor] text =" << text;
+   
 
     for (const auto& m : map) {
         if (text == m.key) {
@@ -83,7 +83,7 @@ static QIcon loadIconFor(const QString& text) {
             }
         }
     }
-    qDebug() << "no path, use default path";
+    
     return QIcon(":/icons/icons/move.png");
 }
 

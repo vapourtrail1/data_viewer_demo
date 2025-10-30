@@ -77,7 +77,7 @@ static QIcon loadIconFor(const QString& text) {
         { QStringLiteral("动态重命名"),  ":/icons/icons/dynamic_rename.png" },
     };
 
-    qDebug() << "[loadIconFor] text =" << text;
+   
 
     for (const auto& m : map) {
         if (text == m.key) {
@@ -90,7 +90,7 @@ static QIcon loadIconFor(const QString& text) {
         }
     }
 
-    qDebug() << "no path, use default path";
+    
     return QIcon(":/icons/icons/move.png");
 }
 

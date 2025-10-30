@@ -24,11 +24,11 @@ namespace core::services {
         ~OrthogonalMprService();
         bool loadSeries(const QString& directory, QString* errorMessage = nullptr);
         bool initializeViewers(vtkRenderWindow* axialWindow,
-        vtkRenderWindowInteractor* axialInteractor,
+        vtkRenderWindowInteractor* axialInteractor,//ºá¶ÏÃæ
         vtkRenderWindow* sagittalWindow,
-        vtkRenderWindowInteractor* sagittalInteractor,
+		vtkRenderWindowInteractor* sagittalInteractor,//Ê¸×´Ãæ
         vtkRenderWindow* coronalWindow,
-        vtkRenderWindowInteractor* coronalInteractor,
+		vtkRenderWindowInteractor* coronalInteractor,//¹Ú×´Ãæ
         vtkRenderWindow* volumeWindow,
         vtkRenderWindowInteractor* volumeInteractor);
         bool hasData() const;
@@ -37,5 +37,4 @@ namespace core::services {
         struct Impl;
         std::unique_ptr<Impl> impl_;
     };
-
-} // na
+} 

@@ -81,7 +81,7 @@ static QIcon loadIconFor(const QString& text) {
         { QStringLiteral("体积投影器"),  ":/volume_icons/icons_other/volume_icons/volume_projector.png" },
     };
 
-    qDebug() << "[loadIconFor] text =" << text;
+    
 
     for (const auto& m : map) {
         if (text == m.key) {
@@ -93,7 +93,7 @@ static QIcon loadIconFor(const QString& text) {
             }
         }
     }
-    qDebug() << "no path, use default path";
+   
     return QIcon(":/icons/icons/move.png");
 }
 

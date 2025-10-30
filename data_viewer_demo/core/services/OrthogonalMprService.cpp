@@ -23,7 +23,13 @@
 #    include <vtkSmartVolumeMapper.h>
 #    include <vtkVolume.h>
 #    include <vtkVolumeProperty.h>
-#endif
+#    include <vtkOpenGLGPUVolumeRayCastMapper.h>
+#    include <vtkAutoInit.h>
+#endif 
+
+
+VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2);
+
 
 Q_LOGGING_CATEGORY(lcOrthogonalMpr, "core.services.OrthogonalMprService");
 
@@ -85,7 +91,7 @@ namespace core::services {
         vtkSmartPointer<vtkDICOMImageReader> reader;
         vtkSmartPointer<vtkResliceCursor> resliceCursor;
         std::array<vtkSmartPointer<vtkResliceImageViewer>, 3> viewers;
-        std::array<vtkSmartPointer<vtkResliceCursorWidget>, 3> widgets;
+        std::array<vtkWeakPointer<vtkResliceCursorWidget>, 3> widgets;
         vtkSmartPointer<ResliceCursorCallback> callback;
 
         vtkSmartPointer<vtkRenderer> volumeRenderer;
@@ -142,18 +148,28 @@ namespace core::services {
         impl_->reader->SetDirectoryName(QDir::toNativeSeparators(dirInfo.absoluteFilePath()).toUtf8().constData());
         impl_->reader->Update();
 
-        vtkImageData* image = impl_->reader->GetOutput();
-        if (image == nullptr || image->GetNumberOfPoints() == 0) {
+        
+        int dims[3];
+        impl_->reader->GetOutput()->GetDimensions(dims);
+        if (dims[0] == 0 || dims[1] == 0 || dims[2] == 0) {
             if (errorMessage) {
-                *errorMessage = QStringLiteral("No readable DICOM volume was produced from the directory: %1").arg(directory);
+                *errorMessage = QStringLiteral("DICOM volume is empty or invalid. "
+                    "Check if directory contains non-image files (e.g., ROI.dcm, .DS_Store).");
             }
             impl_->hasData = false;
-            impl_->reader = nullptr;
             return false;
         }
 
+        vtkImageData* image = impl_->reader->GetOutput();
+        double range[2];
+        image->GetScalarRange(range);
+        qInfo() << "DICOM volume loaded. Dimensions:"
+            << dims[0] << "x" << dims[1] << "x" << dims[2]
+            << "Range:" << range[0] << "~" << range[1];
+
         impl_->hasData = true;
         return true;
+
 #else
         Q_UNUSED(directory);
         if (errorMessage) {
@@ -204,7 +220,7 @@ namespace core::services {
         impl_->resliceCursor->SetImage(image);
         impl_->resliceCursor->SetThickMode(0);
 
-        double range[2] = { 0.0, 0.0 };
+        double range[2] = { 0.0,0.0 };
         image->GetScalarRange(range);
 
         const std::array<std::pair<vtkRenderWindow*, vtkRenderWindowInteractor*>, 3> viewConfig = {
@@ -227,20 +243,12 @@ namespace core::services {
             impl_->viewers[i]->GetRenderer()->ResetCamera();
 
             // 2) 直接使用 viewer 自带的 Widget；只做交互器/渲染器绑定与启用
-            impl_->widgets[i] = impl_->viewers[i]->GetResliceCursorWidget();
+            impl_->widgets[i] = impl_->viewers[i]->GetResliceCursorWidget(); // 裸指针
             impl_->widgets[i]->SetInteractor(viewConfig[i].second);
             impl_->widgets[i]->SetDefaultRenderer(impl_->viewers[i]->GetRenderer());
             impl_->widgets[i]->SetEnabled(1);
 
-            // （可选）如果需要调外观，可从 widget 取 representation 再 SafeDownCast 做美化
-            // auto* rep = vtkResliceCursorLineRepresentation::SafeDownCast(impl_->widgets[i]->GetRepresentation());
-            // if (rep) {
-            //     rep->GetResliceCursorActor()->GetCenterlineProperty(0)->SetLineWidth(1.5);
-            //     rep->GetResliceCursorActor()->GetCenterlineProperty(1)->SetLineWidth(1.5);
-            //     rep->GetResliceCursorActor()->GetCenterlineProperty(2)->SetLineWidth(1.5);
-            // }
         }
-
 
         // 事件回调：三视图联动，并刷新体渲染窗口
         impl_->callback = vtkSmartPointer<ResliceCursorCallback>::New();

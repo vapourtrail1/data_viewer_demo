@@ -1,5 +1,4 @@
 #include "c_ui/workbenches/PerformancePage.h"
-
 #include "core/services/OrthogonalMprService.h"
 
 #include <QVBoxLayout>

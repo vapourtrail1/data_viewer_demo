@@ -87,7 +87,7 @@ static QIcon loadIconFor(const QString& text) {
         { QStringLiteral("工具停靠栏"),  ":/window_icons/icons_other/window_icons/toolbar_docking.PNG" },
         { QStringLiteral("重置工具"),  ":/window_icons/icons_other/window_icons/reset_tool.PNG" },
     };
-    qDebug() << "[loadIconFor] text =" << text;
+    
 
     for (const auto& m : map) {
         if (text == m.key) {
@@ -99,7 +99,7 @@ static QIcon loadIconFor(const QString& text) {
             }
         }
     }
-    qDebug() << "no path, use default path";
+    
     return QIcon(":/icons/icons/move.png");
 }
 

@@ -86,7 +86,7 @@ static QIcon loadIconFor(const QString& text) {
         { QStringLiteral("公差注解"),  ":/new/prefix1/icons_other/measure_icons/tolerance_annotation.PNG" },
         { QStringLiteral("CM结果"),  ":/new/prefix1/icons_other/measure_icons/CM_result.PNG" },
     };
-    qDebug() << "[loadIconFor] text =" << text;
+   
 
     for (const auto& m : map) {
         if (text == m.key) {
@@ -98,7 +98,7 @@ static QIcon loadIconFor(const QString& text) {
             }
         }
     }
-    qDebug() << "no path, use default path";
+    
     return QIcon(":/icons/icons/move.png");
 }
 

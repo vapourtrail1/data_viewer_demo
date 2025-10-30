@@ -69,7 +69,7 @@ static QIcon loadIconFor(const QString& text) {
         { QStringLiteral("±‰–Œ≥°"),      ":/cad_icons/icons_other/CAD_surfacemesh_icons/deformation_field.PNG" },
     };
 
-    qDebug() << "[loadIconFor] text =" << text;
+
 
     for (const auto& m : map) {
         if (text == m.key) {
@@ -81,7 +81,7 @@ static QIcon loadIconFor(const QString& text) {
             }
         }
     }
-    qDebug() << "no path, use default path";
+   
     return QIcon(":/icons/icons/move.png");
 }
 
