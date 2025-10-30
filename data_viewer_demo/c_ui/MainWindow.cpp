@@ -25,6 +25,11 @@
 #include <QStringList>
 #include <QGuiApplication>
 #include <QScreen>
+#include <QHBoxLayout>  
+#include <QWidget>      
+#include <QSizePolicy>  
+#include <QRect>        
+#if USE_VTK
 #include <QVTKOpenGLNativeWidget.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkRenderer.h>
@@ -33,13 +38,10 @@
 #include <vtkSphereSource.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkActor.h>
+#endif 
 
 
-#if USE_VTK
-#include <QVTKOpenGLNativeWidget.h>
-#include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkRenderer.h>
-#endif
+
 
 // 构造函数
 CTViewer::CTViewer(QWidget* parent)
