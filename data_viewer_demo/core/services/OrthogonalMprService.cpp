@@ -33,6 +33,7 @@ VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2);
 
 Q_LOGGING_CATEGORY(lcOrthogonalMpr, "core.services.OrthogonalMprService");
 
+//git
 namespace core::services {
 
 #if USE_VTK

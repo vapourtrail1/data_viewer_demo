@@ -32,7 +32,7 @@ namespace core::services {
         vtkRenderWindow* volumeWindow,
         vtkRenderWindowInteractor* volumeInteractor);
         bool hasData() const;
-
+        //git
     private:
         struct Impl;
         std::unique_ptr<Impl> impl_;
