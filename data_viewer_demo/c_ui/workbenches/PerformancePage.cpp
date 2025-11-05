@@ -1,5 +1,6 @@
 #include "c_ui/workbenches/PerformancePage.h"
 #include "core/services/OrthogonalMprService.h"
+
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
@@ -8,7 +9,11 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QFrame>
-//git
+
+<<<<<<< HEAD
+
+=======
+>>>>>>> parent of 9103a31 (core modified display origin image)
 #if USE_VTK
 #include <QVTKOpenGLNativeWidget.h>
 #endif
@@ -116,7 +121,7 @@ void PerformancePage::wireSignals()
 {
     // 浏览按钮：弹出目录选择对话框。
     connect(btnBrowse_, &QPushButton::clicked, this, [this]() {
-        const QString directory = QFileDialog::getExistingDirectory(this, QStringLiteral("选择 DICOM 目录"));
+        const QString directory = QFileDialog::getExistingDirectory(this, QStringLiteral("选择 DICOM文件 目录"));
         if (!directory.isEmpty()) {
             inputDirectory_->setText(directory);
         }

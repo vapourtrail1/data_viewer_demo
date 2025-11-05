@@ -41,7 +41,7 @@
 //#include <vtkOpenGLGPUVolumeRayCastMapper.h>
 //#include <vtkAutoInit.h>
 #endif 
-//git
+
 
 //VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2);
 
@@ -265,10 +265,10 @@ void CTViewer::buildTitleBar()
             stack_->setCurrentWidget(pageReport_);
             statusBar()->showMessage(QStringLiteral("已切换到“报告”功能区"));
         }
-        /*else if (index == 11 && page) {
-            stack_->setCurrentWidget(pageReport_);
-            statusBar()->showMessage(QStringLiteral("已切换到“报告”功能区"));
-        }*/
+        else if (index == 11 && pageAnimation_) {
+            stack_->setCurrentWidget(pageAnimation_);
+            statusBar()->showMessage(QStringLiteral("已切换到“动画”功能区"));
+        }
         else if (index == 12 && pageWindow_) {
 			stack_->setCurrentWidget(pageWindow_);
 			statusBar()->showMessage(QStringLiteral("已切换到“窗口”功能区"));
@@ -380,6 +380,8 @@ void CTViewer::buildCentral()
 	stack_->addWidget(pageWindow_);
 	pageReport_ = new ReportPage(stack_);
 	stack_->addWidget(pageReport_);
+    pageAnimation_ = new AnimationPage(stack_);
+    stack_->addWidget(pageAnimation_);
     pagePerformance_ = new PerformancePage(stack_);
     stack_->addWidget(pagePerformance_);
 
