@@ -27,20 +27,18 @@
 #    include <vtkAutoInit.h>
 #endif 
 
-
 VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2);
-
 
 Q_LOGGING_CATEGORY(lcOrthogonalMpr, "core.services.OrthogonalMprService");
 
-//git
+
 namespace core::services {
 
 #if USE_VTK
     namespace {
 
         /**
-         * @brief Propagates slice-interaction events between viewers and keeps the volume view updated.
+         *  在查看器之间传播切片交互事件，并保持体积视图更新
          */
         class ResliceCursorCallback final : public vtkCommand
         {
@@ -123,7 +121,6 @@ namespace core::services {
     bool OrthogonalMprService::loadSeries(const QString& directory, QString* errorMessage)
     {
         if (!impl_) {
-            // The unique_ptr should always be initialised, but guard against accidental misuse.
             impl_ = std::make_unique<Impl>();
         }
 
