@@ -81,7 +81,7 @@ namespace core::services {
             vtkRenderWindow* volumeWindow_ = nullptr;
         };
 
-    } // namespace
+    } // 
 #endif // USE_VTK
 
     struct OrthogonalMprService::Impl
