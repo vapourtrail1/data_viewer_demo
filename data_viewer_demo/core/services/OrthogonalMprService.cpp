@@ -1,180 +1,100 @@
 #include "core/services/OrthogonalMprService.h"
-#include <array>
-#include <utility>
-#include <QDir>
-#include <QFileInfo>
+
 #include <QLoggingCategory>
-#include <QtGlobal>
 
 #if USE_VTK
-#    include <vtkCommand.h>
-#    include <vtkColorTransferFunction.h>
-#    include <vtkDICOMImageReader.h>
-#    include <vtkImageData.h>
-#    include <vtkPiecewiseFunction.h>
-#    include <vtkRenderer.h>
-#    include <vtkRenderWindow.h>
-#    include <vtkRenderWindowInteractor.h>
-#    include <vtkResliceCursor.h>
-#    include <vtkResliceCursorLineRepresentation.h>
-#    include <vtkResliceCursorWidget.h>
-#    include <vtkResliceImageViewer.h>
-#    include <vtkSmartPointer.h>
-#    include <vtkSmartVolumeMapper.h>
-#    include <vtkVolume.h>
-#    include <vtkVolumeProperty.h>
-#    include <vtkOpenGLGPUVolumeRayCastMapper.h>
-#    include <vtkAutoInit.h>
-#endif 
+// VTK
+#  include <vtkAutoInit.h>
+#  include <vtkCommand.h>
+#  include <vtkImageData.h>
+#  include <vtkRenderWindow.h>
+#  include <vtkRenderWindowInteractor.h>
+#  include <vtkResliceImageViewer.h>
+VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2)
+#endif
 
-VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2);
+// 
+#include "core/mpr/mprAssembly.h"
+#include "core/mpr/mprState.h"
+#include "core/mpr/mprInteractionRouter.h"
+#include "core/render/renderService.h"
+#include "core/io/volumeIOServiceVtk.h"
+#include "core/data/volumeModel.h"
 
-Q_LOGGING_CATEGORY(lcOrthogonalMpr, "core.services.OrthogonalMprService");
-
+Q_LOGGING_CATEGORY(lcOrthogonalMpr, "core.services.OrthogonalMprService")
 
 namespace core::services {
+    struct OrthogonalMprService::Impl {
+        bool hasData = false;
+        core::data::VolumeModel cachedModel;
 
 #if USE_VTK
-    namespace {
-
-        /**
-         *  在查看器之间传播切片交互事件，并保持体积视图更新
-         */
-        class ResliceCursorCallback final : public vtkCommand
-        {
-        public:
-            static ResliceCursorCallback* New()
-            {
-                return new ResliceCursorCallback();
-            }
-
-            vtkTypeMacro(ResliceCursorCallback, vtkCommand);
-
-            void SetViewers(const std::array<vtkResliceImageViewer*, 3>& viewers)
-            {
-                viewers_ = viewers;
-            }
-
-            void SetVolumeWindow(vtkRenderWindow* window)
-            {
-                volumeWindow_ = window;
-            }
-
-            void Execute(vtkObject* caller, unsigned long eventId, void*) override
-            {
-                Q_UNUSED(caller);
-                Q_UNUSED(eventId);
-
-                for (auto* viewer : viewers_) {
-                    if (viewer) {
-                        viewer->Render();
-                    }
-                }
-
-                if (volumeWindow_) {
-                    volumeWindow_->Render();
-                }
-            }
-
-        private:
-            std::array<vtkResliceImageViewer*, 3> viewers_{};
-            vtkRenderWindow* volumeWindow_ = nullptr;
-        };
-
-    } // 
-#endif // USE_VTK
-
-    struct OrthogonalMprService::Impl
-    {
-#if USE_VTK
-        vtkSmartPointer<vtkDICOMImageReader> reader;
-        vtkSmartPointer<vtkResliceCursor> resliceCursor;
-        std::array<vtkSmartPointer<vtkResliceImageViewer>, 3> viewers;
-        std::array<vtkWeakPointer<vtkResliceCursorWidget>, 3> widgets;
-        vtkSmartPointer<ResliceCursorCallback> callback;
-
-        vtkSmartPointer<vtkRenderer> volumeRenderer;
-        vtkSmartPointer<vtkSmartVolumeMapper> volumeMapper;
-        vtkSmartPointer<vtkVolume> volume;
-        vtkSmartPointer<vtkVolumeProperty> volumeProperty;
-        vtkSmartPointer<vtkColorTransferFunction> volumeColor;
-        vtkSmartPointer<vtkPiecewiseFunction> volumeOpacity;
-
-        vtkRenderWindow* linkedVolumeWindow = nullptr;
-        bool hasData = false;
-#else
-        bool hasData = false;
+        std::unique_ptr<core::mpr::MprState>             state = std::make_unique<core::mpr::MprState>();
+        std::unique_ptr<core::mpr::MprAssembly>          assembly = std::make_unique<core::mpr::MprAssembly>();
+        std::unique_ptr<core::mpr::MprInteractionRouter> router = std::make_unique<core::mpr::MprInteractionRouter>();
+        std::unique_ptr<core::render::RenderService>     render = std::make_unique<core::render::RenderService>();
 #endif
     };
 
-    OrthogonalMprService::OrthogonalMprService()
-        : impl_(std::make_unique<Impl>())
-    {
-#if !USE_VTK
-        qCWarning(lcOrthogonalMpr)
-            << "VTK support is disabled; OrthogonalMprService will only provide stub behaviour.";
+#if USE_VTK
+    // 三视图联动时用的回调
+    namespace {
+        class ResliceCursorCallback final : public vtkCommand {
+        public:
+            static ResliceCursorCallback* New() { return new ResliceCursorCallback(); }
+            vtkTypeMacro(ResliceCursorCallback, vtkCommand);
+            void Execute(vtkObject*, unsigned long, void*) override {
+                // 需要补充：联动滚片时刷新 3D 体渲染等
+            }
+        };
+    } // anonymous namespace
 #endif
+
+
+    OrthogonalMprService::OrthogonalMprService()
+        : impl_(std::make_unique<Impl>()) {
     }
 
     OrthogonalMprService::~OrthogonalMprService() = default;
 
+    // =========================== Public API ===========================
+    bool OrthogonalMprService::hasData() const {
+        return impl_->hasData;
+    }
+
+    void OrthogonalMprService::detach()
+    {
+#if USE_VTK
+        if (!impl_->assembly) return;
+        if (impl_->router) impl_->router->unwire();
+        impl_->assembly->detach();
+#endif
+    }
+
     bool OrthogonalMprService::loadSeries(const QString& directory, QString* errorMessage)
     {
-        if (!impl_) {
-            impl_ = std::make_unique<Impl>();
-        }
-
-#if USE_VTK
-        if (directory.isEmpty()) {
-            if (errorMessage) {
-                *errorMessage = QStringLiteral("Please choose a valid DICOM directory before loading.");
-            }
-            impl_->hasData = false;
-            return false;
-        }
-
-        const QFileInfo dirInfo(directory);
-        if (!dirInfo.exists() || !dirInfo.isDir()) {
-            if (errorMessage) {
-                *errorMessage = QStringLiteral("The specified DICOM directory does not exist: %1").arg(directory);
-            }
-            impl_->hasData = false;
-            return false;
-        }
-
-        impl_->reader = vtkSmartPointer<vtkDICOMImageReader>::New();
-        impl_->reader->SetDirectoryName(QDir::toNativeSeparators(dirInfo.absoluteFilePath()).toUtf8().constData());
-        impl_->reader->Update();
-
-        
-        int dims[3];
-        impl_->reader->GetOutput()->GetDimensions(dims);
-        if (dims[0] == 0 || dims[1] == 0 || dims[2] == 0) {
-            if (errorMessage) {
-                *errorMessage = QStringLiteral("DICOM volume is empty or invalid. "
-                    "Check if directory contains non-image files (e.g., ROI.dcm, .DS_Store).");
-            }
-            impl_->hasData = false;
-            return false;
-        }
-
-        vtkImageData* image = impl_->reader->GetOutput();
-        double range[2];
-        image->GetScalarRange(range);
-        qInfo() << "DICOM volume loaded. Dimensions:"
-            << dims[0] << "x" << dims[1] << "x" << dims[2]
-            << "Range:" << range[0] << "~" << range[1];
-
-        impl_->hasData = true;
-        return true;
-
-#else
-        Q_UNUSED(directory);
-        if (errorMessage) {
-            *errorMessage = QStringLiteral("VTK support is disabled in this build; loading is not available.");
-        }
-        impl_->hasData = false;
+#if !USE_VTK
+        if (errorMessage) *errorMessage = QStringLiteral("VTK 未启用");
         return false;
+#else
+        core::io::VolumeIOServiceVtk io;
+        auto result = io.loadDicomDir(directory);
+        if (!result.ok()) {
+            if (errorMessage) *errorMessage = result.message;
+            impl_->hasData = false;
+            return false;
+        }
+
+        impl_->cachedModel = result.value;
+        impl_->hasData = true;
+        if (errorMessage) *errorMessage = result.message;
+
+        // 绑定图像到状态（供 MPR 管线使用）
+        if (impl_->state) {
+            impl_->state->bindImage(impl_->cachedModel.image());
+            impl_->state->resetToCenter();
+        }
+        return true;
 #endif
     }
 
@@ -187,137 +107,103 @@ namespace core::services {
         vtkRenderWindow* volumeWindow,
         vtkRenderWindowInteractor* volumeInteractor)
     {
-#if USE_VTK
-        if (!impl_ || !impl_->hasData) {
-            qCWarning(lcOrthogonalMpr)
-                << "initializeViewers called before loadSeries produced any data.";
-            return false;
+#if !USE_VTK
+        Q_UNUSED(axialWindow); Q_UNUSED(axialInteractor);
+        Q_UNUSED(sagittalWindow); Q_UNUSED(sagittalInteractor);
+        Q_UNUSED(coronalWindow); Q_UNUSED(coronalInteractor);
+        Q_UNUSED(volumeWindow); Q_UNUSED(volumeInteractor);
+        return false;
+#else
+        if (!impl_->hasData) return false;
+
+        // 解除旧连线，重新布线
+        if (impl_->router) impl_->router->unwire();
+
+        // 用 Raw 接口绑定现有窗口/交互器
+        impl_->assembly->attachRaw(
+            axialWindow, axialInteractor,
+            coronalWindow, coronalInteractor,
+            sagittalWindow, sagittalInteractor,
+            volumeWindow, volumeInteractor);
+
+        impl_->assembly->setState(impl_->state.get());
+        impl_->assembly->buildPipelines();
+
+        // 同步 WL 到 2D，应用默认/记忆的预设到体渲染
+        if (impl_->render) {
+            impl_->render->syncWLTo2D(
+                impl_->assembly->axialViewer(),
+                impl_->assembly->coronalViewer(),
+                impl_->assembly->sagittalViewer());
+            // 如需默认预设，可在此调用：
+            // impl_->render->applyPreset(QStringLiteral("SoftTissue"),
+            //     impl_->assembly->axialViewer(),
+            //     impl_->assembly->coronalViewer(),
+            //     impl_->assembly->sagittalViewer(),
+            //     impl_->assembly->volumeProperty());
         }
 
-        if (!axialWindow || !sagittalWindow || !coronalWindow || !volumeWindow) {
-            qCWarning(lcOrthogonalMpr)
-                << "All render windows must be valid before initialising the MPR pipeline.";
-            return false;
-        }
+        // 居中并刷新
+        impl_->state->resetToCenter();
+        impl_->assembly->refreshAll();
 
-        if (!axialInteractor || !sagittalInteractor || !coronalInteractor || !volumeInteractor) {
-            qCWarning(lcOrthogonalMpr)
-                << "All render window interactors must be valid before initialising the MPR pipeline.";
-            return false;
-        }
-
-        vtkImageData* image = impl_->reader ? impl_->reader->GetOutput() : nullptr;
-        if (!image) {
-            qCWarning(lcOrthogonalMpr)
-                << "The reader did not yield an image; aborting viewer initialisation.";
-            return false;
-        }
-
-        // 统一的 ResliceCursor（让三个切面联动）
-        impl_->resliceCursor = vtkSmartPointer<vtkResliceCursor>::New();
-        impl_->resliceCursor->SetImage(image);
-        impl_->resliceCursor->SetThickMode(0);
-
-        double range[2] = { 0.0,0.0 };
-        image->GetScalarRange(range);
-
-        const std::array<std::pair<vtkRenderWindow*, vtkRenderWindowInteractor*>, 3> viewConfig = {
-            std::make_pair(axialWindow, axialInteractor),
-            std::make_pair(sagittalWindow, sagittalInteractor),
-            std::make_pair(coronalWindow, coronalInteractor)
-        };
-
-        for (int i = 0; i < 3; ++i) {
-            // 1) 创建并配置每个切片 Viewer
-            impl_->viewers[i] = vtkSmartPointer<vtkResliceImageViewer>::New();
-            impl_->viewers[i]->SetInputData(image);
-            impl_->viewers[i]->SetResliceCursor(impl_->resliceCursor);  // 统一的 ResliceCursor 设在 viewer 上
-            impl_->viewers[i]->SetSliceOrientation(i);                  // 0=axial, 1=sagittal, 2=coronal
-            impl_->viewers[i]->SetRenderWindow(viewConfig[i].first);
-            impl_->viewers[i]->SetupInteractor(viewConfig[i].second);
-
-            impl_->viewers[i]->SetColorWindow(range[1] - range[0]);
-            impl_->viewers[i]->SetColorLevel(0.5 * (range[0] + range[1]));
-            impl_->viewers[i]->GetRenderer()->ResetCamera();
-
-            // 2) 直接使用 viewer 自带的 Widget；只做交互器/渲染器绑定与启用
-            impl_->widgets[i] = impl_->viewers[i]->GetResliceCursorWidget(); // 裸指针
-            impl_->widgets[i]->SetInteractor(viewConfig[i].second);
-            impl_->widgets[i]->SetDefaultRenderer(impl_->viewers[i]->GetRenderer());
-            impl_->widgets[i]->SetEnabled(1);
-
-        }
-
-        // 事件回调：三视图联动，并刷新体渲染窗口
-        impl_->callback = vtkSmartPointer<ResliceCursorCallback>::New();
-        impl_->callback->SetViewers({
-            impl_->viewers[0].GetPointer(),
-            impl_->viewers[1].GetPointer(),
-            impl_->viewers[2].GetPointer()
-            });
-        impl_->callback->SetVolumeWindow(volumeWindow);
-
-        for (auto& widget : impl_->widgets) {
-            widget->AddObserver(vtkCommand::InteractionEvent, impl_->callback);
-            widget->AddObserver(vtkResliceCursorWidget::ResliceAxesChangedEvent, impl_->callback);
-        }
-
-        // 简单的体渲染管线（与窗宽窗位联动刷新即可）
-        impl_->linkedVolumeWindow = volumeWindow;
-        impl_->volumeRenderer = vtkSmartPointer<vtkRenderer>::New();
-        impl_->volumeRenderer->SetBackground(0.1, 0.1, 0.1);
-        volumeWindow->AddRenderer(impl_->volumeRenderer);
-        volumeInteractor->SetRenderWindow(volumeWindow);
-
-        impl_->volumeMapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
-        impl_->volumeMapper->SetInputData(image);
-
-        impl_->volumeColor = vtkSmartPointer<vtkColorTransferFunction>::New();
-        impl_->volumeColor->AddRGBPoint(range[0], 0.0, 0.0, 0.0);
-        impl_->volumeColor->AddRGBPoint(range[1], 1.0, 1.0, 1.0);
-
-        impl_->volumeOpacity = vtkSmartPointer<vtkPiecewiseFunction>::New();
-        impl_->volumeOpacity->AddPoint(range[0], 0.0);
-        impl_->volumeOpacity->AddPoint(range[1], 1.0);
-
-        impl_->volumeProperty = vtkSmartPointer<vtkVolumeProperty>::New();
-        impl_->volumeProperty->SetColor(impl_->volumeColor);
-        impl_->volumeProperty->SetScalarOpacity(impl_->volumeOpacity);
-        impl_->volumeProperty->SetInterpolationTypeToLinear();
-        impl_->volumeProperty->ShadeOff();
-
-        impl_->volume = vtkSmartPointer<vtkVolume>::New();
-        impl_->volume->SetMapper(impl_->volumeMapper);
-        impl_->volume->SetProperty(impl_->volumeProperty);
-
-        impl_->volumeRenderer->AddVolume(impl_->volume);
-        impl_->volumeRenderer->ResetCamera();
-
-        // 初始渲染
-        axialWindow->Render();
-        sagittalWindow->Render();
-        coronalWindow->Render();
-        volumeWindow->Render();
+        // 重新连线（事件路由）
+        if (impl_->router) impl_->router->wire();
 
         return true;
-#else
-        Q_UNUSED(axialWindow);
-        Q_UNUSED(axialInteractor);
-        Q_UNUSED(sagittalWindow);
-        Q_UNUSED(sagittalInteractor);
-        Q_UNUSED(coronalWindow);
-        Q_UNUSED(coronalInteractor);
-        Q_UNUSED(volumeWindow);
-        Q_UNUSED(volumeInteractor);
-
-        qCWarning(lcOrthogonalMpr)
-            << "initializeViewers is unavailable because VTK support is disabled.";
-        return false;
 #endif
     }
-    bool OrthogonalMprService::hasData() const
+
+    void OrthogonalMprService::resetCursorToCenter()
     {
-        return impl_ ? impl_->hasData : false;
+#if USE_VTK
+        if (!impl_->hasData) return;
+        impl_->state->resetToCenter();
+        impl_->assembly->refreshAll();
+#endif
     }
 
-}
+    void OrthogonalMprService::setSliceIndex(int axial, int coronal, int sagittal)
+    {
+#if USE_VTK
+        if (!impl_->hasData) return;
+        impl_->state->setIndices(axial, coronal, sagittal);
+        impl_->assembly->refreshAll();
+#else
+        Q_UNUSED(axial); Q_UNUSED(coronal); Q_UNUSED(sagittal);
+#endif
+    }
+
+    void OrthogonalMprService::setWindowLevel(double window, double level, bool allViews)
+    {
+#if USE_VTK
+        Q_UNUSED(allViews);
+        if (!impl_->hasData) return;
+        impl_->render->setWL(window, level);
+        impl_->render->syncWLTo2D(
+            impl_->assembly->axialViewer(),
+            impl_->assembly->coronalViewer(),
+            impl_->assembly->sagittalViewer());
+        impl_->assembly->refreshAll();
+#else
+        Q_UNUSED(window); Q_UNUSED(level); Q_UNUSED(allViews);
+#endif
+    }
+
+    void OrthogonalMprService::applyPreset(const QString& name)
+    {
+#if USE_VTK
+        if (!impl_->hasData) return;
+        impl_->render->applyPreset(
+            name,
+            impl_->assembly->axialViewer(),
+            impl_->assembly->coronalViewer(),
+            impl_->assembly->sagittalViewer(),
+            impl_->assembly->volumeProperty());
+        impl_->assembly->refreshAll();
+#else
+        Q_UNUSED(name);
+#endif
+    }
+
+} // namespace core::services
