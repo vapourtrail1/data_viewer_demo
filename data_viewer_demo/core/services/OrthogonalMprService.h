@@ -2,36 +2,65 @@
 
 #include <memory>
 #include <QString>
-#include "core/common/VtkMacros.h"  
 
+#include "core/data/VolumeModel.h"
+
+class QVTKOpenGLNativeWidget;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
 
+namespace core::mpr {
+class MprAssembly;
+class MprState;
+class MprInteractionRouter;
+}
+
+namespace core::render {
+class RenderService;
+}
+
 namespace core::services {
-    /*
-     * ¸ºÔğ¼ÓÔØ DICOM ÏµÁĞºÍÁ¬½Ó VTK ²é¿´Æ÷µÄÂß¼­µÄ·şÎñ½Ó¿Ú¡£
-     * ¸ÃÊµÏÖÓĞÒâÒş²ØÁËÍ·ÎÄ¼şÖĞµÄËùÓĞ VTK Í·ÎÄ¼ş£¬ÒÔ±ãÏîÄ¿
-     * ¼´Ê¹±àÒëÊ±Î´ÆôÓÃ VTK£¬Ò²Ö»Ğè°üº¬ÕâÒ»¸öÍ·ÎÄ¼ş¼´¿É¡£µ± VTK ²»¿ÉÓÃÊ±£¬
-     * ¸Ã·şÎñ»á±¨¸æÈ±ÉÙÖ§³Ö²¢Ê§°Ü¡£
-     */
-    class OrthogonalMprService
-    {
-    public:
-        OrthogonalMprService();
-        ~OrthogonalMprService();
-        bool loadSeries(const QString& directory, QString* errorMessage = nullptr);
-        bool initializeViewers(vtkRenderWindow* axialWindow,
-        vtkRenderWindowInteractor* axialInteractor,//ºá¶ÏÃæ
+
+/**
+ * @brief OrthogonalMprService æä¾›ä¸‰æ­£äº¤é¢+3D æ¸²æŸ“çš„ç»Ÿä¸€å…¥å£ã€‚
+ */
+class OrthogonalMprService
+{
+public:
+    OrthogonalMprService();
+    ~OrthogonalMprService();
+
+    void attachTo(QVTKOpenGLNativeWidget* axial, QVTKOpenGLNativeWidget* coronal, QVTKOpenGLNativeWidget* sagittal, QVTKOpenGLNativeWidget* volume3D);
+    void detach();
+
+    bool setInput(const core::data::VolumeModel& model);
+
+    void resetCursorToCenter();
+    void setSliceIndex(int axial, int coronal, int sagittal);
+
+    void setWindowLevel(double window, double level, bool allViews = true);
+    void applyPreset(const QString& name);
+
+    // å…¼å®¹æ—§å‰ç«¯æ¥å£
+    bool loadSeries(const QString& directory, QString* errorMessage = nullptr);
+    bool initializeViewers(vtkRenderWindow* axialWindow,
+        vtkRenderWindowInteractor* axialInteractor,
         vtkRenderWindow* sagittalWindow,
-		vtkRenderWindowInteractor* sagittalInteractor,//Ê¸×´Ãæ
+        vtkRenderWindowInteractor* sagittalInteractor,
         vtkRenderWindow* coronalWindow,
-		vtkRenderWindowInteractor* coronalInteractor,//¹Ú×´Ãæ
+        vtkRenderWindowInteractor* coronalInteractor,
         vtkRenderWindow* volumeWindow,
         vtkRenderWindowInteractor* volumeInteractor);
-        bool hasData() const;
-        //git
-    private:
-        struct Impl;
-        std::unique_ptr<Impl> impl_;
-    };
-} 
+    bool hasData() const;
+
+private:
+    std::unique_ptr<core::mpr::MprState> m_state;
+    std::unique_ptr<core::mpr::MprAssembly> m_assembly;
+    std::unique_ptr<core::mpr::MprInteractionRouter> m_router;
+    std::unique_ptr<core::render::RenderService> m_render;
+
+    core::data::VolumeModel m_cachedModel;
+    bool m_hasData = false;
+};
+
+} // namespace core::services

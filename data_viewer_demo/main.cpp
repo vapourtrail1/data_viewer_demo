@@ -1,10 +1,8 @@
-#include <QApplication>
-#include "c_ui/MainWindow.h"
+#include "app/App.h"
 
 int main(int argc, char* argv[])
 {
-    QApplication a(argc, argv);
-    CTViewer w;
-    w.show();
-    return a.exec();
+    // 将应用入口委托给 app::App，集中处理初始化逻辑。
+    app::App application;
+    return application.run(argc, argv);
 }
