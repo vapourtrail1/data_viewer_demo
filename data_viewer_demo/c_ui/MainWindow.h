@@ -50,7 +50,7 @@ private:
     QPointer<QToolButton> btnMaximize_;
     QPointer<QToolButton> btnClose_;
 	QPointer<QTabBar> ribbontabBar_;//主界面状态栏指针
-    //git 
+
     bool draggingWindow_ = false;
     QPoint dragOffset_;
 

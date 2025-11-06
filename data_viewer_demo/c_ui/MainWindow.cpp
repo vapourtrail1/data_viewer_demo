@@ -41,7 +41,7 @@
 //#include <vtkOpenGLGPUVolumeRayCastMapper.h>
 //#include <vtkAutoInit.h>
 #endif 
-//git
+
 
 //VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2);
 

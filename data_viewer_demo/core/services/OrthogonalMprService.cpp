@@ -5,45 +5,38 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 
-#include <QVTKOpenGLNativeWidget.h>
-
-#include "core/data/VolumeModel.h"
-#include "core/io/VolumeIOServiceVtk.h"
-#include "core/mpr/MprAssembly.h"
-#include "core/mpr/MprInteractionRouter.h"
-#include "core/mpr/MprState.h"
-#include "core/render/RenderService.h"
-
 VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2);
+
+Q_LOGGING_CATEGORY(lcOrthogonalMpr, "core.services.OrthogonalMprService");
+
 
 namespace core::services {
 
-OrthogonalMprService::OrthogonalMprService()
-    : m_state(std::make_unique<core::mpr::MprState>())
-    , m_assembly(std::make_unique<core::mpr::MprAssembly>())
-    , m_router(std::make_unique<core::mpr::MprInteractionRouter>())
-    , m_render(std::make_unique<core::render::RenderService>())
-{
-    m_router->setAssembly(m_assembly.get());
-    m_router->setState(m_state.get());
-}
+#if USE_VTK
+    namespace {
 
-OrthogonalMprService::~OrthogonalMprService()
-{
-    detach();
-}
+        /**
+         *  在查看器之间传播切片交互事件，并保持体积视图更新
+         */
+        class ResliceCursorCallback final : public vtkCommand
+        {
+        public:
+            static ResliceCursorCallback* New()
+            {
+                return new ResliceCursorCallback();
+            }
 
-void OrthogonalMprService::attachTo(QVTKOpenGLNativeWidget* axial, QVTKOpenGLNativeWidget* coronal, QVTKOpenGLNativeWidget* sagittal, QVTKOpenGLNativeWidget* volume3D)
-{
-    // 先解除旧连接，再绑定新的四视图。
-    m_router->unwire();
-    m_assembly->attach(axial, coronal, sagittal, volume3D);
-    if (m_hasData) {
-        m_assembly->buildPipelines();
-        m_render->syncWLTo2D(m_assembly->axialViewer(), m_assembly->coronalViewer(), m_assembly->sagittalViewer());
-        m_router->wire();
-    }
-}
+            vtkTypeMacro(ResliceCursorCallback, vtkCommand);
+
+            void SetViewers(const std::array<vtkResliceImageViewer*, 3>& viewers)
+            {
+                viewers_ = viewers;
+            }
+
+            void SetVolumeWindow(vtkRenderWindow* window)
+            {
+                volumeWindow_ = window;
+            }
 
 void OrthogonalMprService::detach()
 {
@@ -64,9 +57,8 @@ bool OrthogonalMprService::setInput(const core::data::VolumeModel& model)
 
     m_router->unwire();
 
-    m_state->bindImage(model.image());
-    m_assembly->setState(m_state.get());
-    m_assembly->buildPipelines();
+    } // 
+#endif // USE_VTK
 
     m_render->applyPreset(QStringLiteral("SoftTissue"), m_assembly->axialViewer(), m_assembly->coronalViewer(), m_assembly->sagittalViewer(), m_assembly->volumeProperty());
 
@@ -83,9 +75,13 @@ void OrthogonalMprService::resetCursorToCenter()
         return;
     }
 
-    m_state->resetToCenter();
-    m_assembly->refreshAll();
-}
+    OrthogonalMprService::~OrthogonalMprService() = default;
+
+    bool OrthogonalMprService::loadSeries(const QString& directory, QString* errorMessage)
+    {
+        if (!impl_) {
+            impl_ = std::make_unique<Impl>();
+        }
 
 void OrthogonalMprService::setSliceIndex(int axial, int coronal, int sagittal)
 {

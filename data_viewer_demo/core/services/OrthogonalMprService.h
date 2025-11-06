@@ -2,8 +2,7 @@
 
 #include <memory>
 #include <QString>
-
-#include "core/data/VolumeModel.h"
+#include "core/common/VtkMacros.h"  
 
 class QVTKOpenGLNativeWidget;
 class vtkRenderWindow;
@@ -20,47 +19,30 @@ class RenderService;
 }
 
 namespace core::services {
-
-/**
- * @brief OrthogonalMprService 提供三正交面+3D 渲染的统一入口。
- */
-class OrthogonalMprService
-{
-public:
-    OrthogonalMprService();
-    ~OrthogonalMprService();
-
-    void attachTo(QVTKOpenGLNativeWidget* axial, QVTKOpenGLNativeWidget* coronal, QVTKOpenGLNativeWidget* sagittal, QVTKOpenGLNativeWidget* volume3D);
-    void detach();
-
-    bool setInput(const core::data::VolumeModel& model);
-
-    void resetCursorToCenter();
-    void setSliceIndex(int axial, int coronal, int sagittal);
-
-    void setWindowLevel(double window, double level, bool allViews = true);
-    void applyPreset(const QString& name);
-
-    // 兼容旧前端接口
-    bool loadSeries(const QString& directory, QString* errorMessage = nullptr);
-    bool initializeViewers(vtkRenderWindow* axialWindow,
-        vtkRenderWindowInteractor* axialInteractor,
+    /*
+     * 负责加载 DICOM 系列和连接 VTK 查看器的逻辑的服务接口。
+     * 该实现有意隐藏了头文件中的所有 VTK 头文件，以便项目
+     * 即使编译时未启用 VTK，也只需包含这一个头文件即可。当 VTK 不可用时，
+     * 该服务会报告缺少支持并失败。
+     */
+    class OrthogonalMprService
+    {
+    public:
+        OrthogonalMprService();
+        ~OrthogonalMprService();
+        bool loadSeries(const QString& directory, QString* errorMessage = nullptr);
+        bool initializeViewers(vtkRenderWindow* axialWindow,
+        vtkRenderWindowInteractor* axialInteractor,//横断面
         vtkRenderWindow* sagittalWindow,
         vtkRenderWindowInteractor* sagittalInteractor,
         vtkRenderWindow* coronalWindow,
         vtkRenderWindowInteractor* coronalInteractor,
         vtkRenderWindow* volumeWindow,
         vtkRenderWindowInteractor* volumeInteractor);
-    bool hasData() const;
+        bool hasData() const;
 
-private:
-    std::unique_ptr<core::mpr::MprState> m_state;
-    std::unique_ptr<core::mpr::MprAssembly> m_assembly;
-    std::unique_ptr<core::mpr::MprInteractionRouter> m_router;
-    std::unique_ptr<core::render::RenderService> m_render;
-
-    core::data::VolumeModel m_cachedModel;
-    bool m_hasData = false;
-};
-
-} // namespace core::services
+    private:
+        struct Impl;
+        std::unique_ptr<Impl> impl_;
+    };
+} 
