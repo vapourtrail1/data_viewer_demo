@@ -1,9 +1,19 @@
 #include "core/data/volumeModel.h"
 #include <vtkImageData.h>
 
+/*
+   本页描述一份体数据本身和它的数据原信息等
+   m_image 类型是vtkImagedata 指向一个体数据
+
+   spacing/origin/extent/scalarRange/direction：
+   常用元数据，通常在读盘后由 IO 服务填充。
+*/
+
+
+
 namespace core::data {
 
-    VolumeModel::VolumeModel() = default;
+	VolumeModel::VolumeModel() = default;//default constructor
 
     vtkImageData* VolumeModel::image() const
     {

@@ -1,5 +1,10 @@
 #include "core/data/projectModel.h"
 
+/*
+    本页描述一个"工程"的显示状态
+    包括volumeModel
+	包括WL(怎么显示) presentName(用什么预设显示)
+*/
 namespace core::data {
 
     ProjectModel::ProjectModel() = default;

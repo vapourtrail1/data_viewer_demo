@@ -6,7 +6,7 @@ class vtkImageData;
 namespace core::io {
 
     /**
-     * @brief VolumeIOServiceVtk 使用 VTK 读取体数据文件。
+     VolumeIOServiceVtk 使用 VTK 读取体数据文件。
      */
     class VolumeIOServiceVtk : public IVolumeIOService
     {

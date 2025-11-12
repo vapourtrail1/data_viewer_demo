@@ -10,7 +10,7 @@
 #  include <vtkRenderWindow.h>
 #  include <vtkRenderWindowInteractor.h>
 #  include <vtkResliceImageViewer.h>
-VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2)
+VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2);
 #endif
 
 // 
@@ -51,18 +51,18 @@ namespace core::services {
 #endif
 
 
-    OrthogonalMprService::OrthogonalMprService()
+	OrthogonalMprService::OrthogonalMprService()
         : impl_(std::make_unique<Impl>()) {
     }
 
     OrthogonalMprService::~OrthogonalMprService() = default;
 
-    // =========================== Public API ===========================
+    // Public API 
     bool OrthogonalMprService::hasData() const {
         return impl_->hasData;
     }
 
-    void OrthogonalMprService::detach()
+	void OrthogonalMprService::detach()//这个函数的意思是解除绑定
     {
 #if USE_VTK
         if (!impl_->assembly) return;
@@ -71,7 +71,7 @@ namespace core::services {
 #endif
     }
 
-    bool OrthogonalMprService::loadSeries(const QString& directory, QString* errorMessage)
+	bool OrthogonalMprService::loadSeries(const QString& directory, QString* errorMessage)//这个函数的意思是加载数据序列
     {
 #if !USE_VTK
         if (errorMessage) *errorMessage = QStringLiteral("VTK 未启用");
@@ -105,7 +105,7 @@ namespace core::services {
         vtkRenderWindow* coronalWindow,
         vtkRenderWindowInteractor* coronalInteractor,
         vtkRenderWindow* volumeWindow,
-        vtkRenderWindowInteractor* volumeInteractor)
+		vtkRenderWindowInteractor* volumeInteractor)//这个函数的意思是初始化查看器
     {
 #if !USE_VTK
         Q_UNUSED(axialWindow); Q_UNUSED(axialInteractor);
@@ -154,7 +154,7 @@ namespace core::services {
 #endif
     }
 
-    void OrthogonalMprService::resetCursorToCenter()
+	void OrthogonalMprService::resetCursorToCenter()//这个函数的意思是把光标重置到中心位置
     {
 #if USE_VTK
         if (!impl_->hasData) return;
@@ -168,13 +168,13 @@ namespace core::services {
 #if USE_VTK
         if (!impl_->hasData) return;
         impl_->state->setIndices(axial, coronal, sagittal);
-        impl_->assembly->refreshAll();
+		impl_->assembly->refreshAll();//刷新视图
 #else
         Q_UNUSED(axial); Q_UNUSED(coronal); Q_UNUSED(sagittal);
 #endif
     }
 
-    void OrthogonalMprService::setWindowLevel(double window, double level, bool allViews)
+	void OrthogonalMprService::setWindowLevel(double window, double level, bool allViews)//这个函数的意思是设置窗宽窗位
     {
 #if USE_VTK
         Q_UNUSED(allViews);
@@ -190,7 +190,7 @@ namespace core::services {
 #endif
     }
 
-    void OrthogonalMprService::applyPreset(const QString& name)
+	void OrthogonalMprService::applyPreset(const QString& name)//这个函数的意思是应用预设
     {
 #if USE_VTK
         if (!impl_->hasData) return;

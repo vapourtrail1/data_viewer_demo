@@ -120,7 +120,7 @@ void PerformancePage::wireSignals()
     // 浏览按钮：弹出目录选择对话框。
     connect(btnBrowse_, &QPushButton::clicked, this, [this]() {
         const QString directory = QFileDialog::getExistingDirectory(this, QStringLiteral("选择 DICOM文件 目录"));
-        if (directory.isEmpty()==false) {
+        if (!directory.isEmpty()) {
             inputDirectory_->setText(directory);
         }
         });

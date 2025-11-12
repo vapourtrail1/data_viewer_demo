@@ -70,13 +70,15 @@ namespace core::mpr{
         vtkGenericOpenGLRenderWindow* m_axialWindow = nullptr;
         vtkGenericOpenGLRenderWindow* m_coronalWindow = nullptr;
         vtkGenericOpenGLRenderWindow* m_sagittalWindow = nullptr;
-        vtkGenericOpenGLRenderWindow* m_volumeWindow = nullptr;
+        vtkGenericOpenGLRenderWindow* m_volumeWindow = nullptr;//每个视图自己的Renderwindow
+        //连接volumeWidget->setRenderWindow(m_volumeWindow);
 
         vtkResliceImageViewer* m_axialViewer = nullptr;
         vtkResliceImageViewer* m_coronalViewer = nullptr;
-        vtkResliceImageViewer* m_sagittalViewer = nullptr;
+        vtkResliceImageViewer* m_sagittalViewer = nullptr;//VTK 提供的高级 2D 切片组件（封装了 reslice、相机、交互、显示管线）。
 
         vtkResliceCursorActor* m_cursorActor = nullptr;
+
         vtkSmartVolumeMapper* m_volumeMapper = nullptr;
         vtkVolume* m_volume = nullptr;
         vtkVolumeProperty* m_volumeProperty = nullptr;

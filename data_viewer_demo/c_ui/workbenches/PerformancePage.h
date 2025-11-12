@@ -24,7 +24,7 @@ namespace core::services {
 }
 
 /**
- * @brief 性能页：提供四视图（轴状/矢状/冠状/原始体数据）的三向正交联动展示。
+提供四视图（轴状/矢状/冠状/原始体数据）的三向正交联动展示。
  */
 class PerformancePage : public QWidget
 {
@@ -35,7 +35,7 @@ public:
 
 public slots:
     /**
-     * @brief 加载指定目录下的 DICOM 序列并刷新四个视图。
+     加载指定目录下的 DICOM 序列并刷新四个视图。
      */
     void loadDicomDirectory(const QString& directory);
 
@@ -60,7 +60,7 @@ private:
     QPointer<QPushButton> btnLoad_;
     QPointer<QLabel> statusLabel_;
 
-    QPointer<PerformancePageViewerWidget> viewAxial_;
+	QPointer<PerformancePageViewerWidget> viewAxial_;//用于显示轴状视图。
     QPointer<PerformancePageViewerWidget> viewSagittal_;
     QPointer<PerformancePageViewerWidget> viewCoronal_;
     QPointer<PerformancePageViewerWidget> viewVolume_;

@@ -26,7 +26,7 @@ namespace app {
         // 使用 Qt 自带的 QSettings 读取 ini/注册表配置。
         QSettings settings(QString::fromUtf8(kOrgName),QString::fromUtf8(kAppName));//QSettings的构造函数会根据平台选择合适的存储方式
         m_recentFiles = settings.value(QString::fromUtf8(kRecentFilesKey)).toStringList();
-        
+		//传入的参数有可能是utf8编码的字符串，所以使用fromUtf8进行转换
         const double window = settings.value(QString::fromUtf8(kWindowWidthKey), m_defaultWL.first).toDouble();
         const double level = settings.value(QString::fromUtf8(kWindowLevelKey), m_defaultWL.second).toDouble();
         m_defaultWL = { window, level };

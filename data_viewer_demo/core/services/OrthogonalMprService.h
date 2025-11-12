@@ -20,7 +20,7 @@ namespace core::render {
 namespace core::services {
     /*
      * 负责加载 DICOM 系列和连接 VTK 查看器的逻辑的服务接口。
-     * 该实现有意隐藏头文件中的所有 VTK 头文件；当未启用 VTK 时可优雅降级。
+     * 该实现有意隐藏头文件中的所有 VTK 头文件；当未启用 VTK 时可降级。
      */
     class OrthogonalMprService
     {
