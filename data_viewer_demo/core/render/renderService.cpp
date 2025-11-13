@@ -28,7 +28,7 @@ namespace core::render {
         m_store.fillVolumePreset(name, volumeProp);
     }
 
-    void RenderService::syncWLTo2D(vtkResliceImageViewer* axial, vtkResliceImageViewer* coronal, vtkResliceImageViewer* sagittal)
+	void RenderService::syncWLTo2D(vtkResliceImageViewer* axial, vtkResliceImageViewer* coronal, vtkResliceImageViewer* sagittal)//这个函数的意思是把当前的窗宽窗位应用到三个视图上
     {
         const auto apply = [this](vtkResliceImageViewer* viewer) {
             if (!viewer) {

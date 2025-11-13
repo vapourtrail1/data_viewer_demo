@@ -55,6 +55,6 @@ namespace core::services {
 
     private:
         struct Impl;
-        std::unique_ptr<Impl> impl_;
+		std::unique_ptr<Impl> impl_;// 
     };
 } // namespace core::services

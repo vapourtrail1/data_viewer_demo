@@ -19,8 +19,14 @@ namespace core::render {
         void setWL(double window, double level);
         core::common::WL wl() const;
 
-        void applyPreset(const QString& name, vtkResliceImageViewer* axial, vtkResliceImageViewer* coronal, vtkResliceImageViewer* sagittal, vtkVolumeProperty* volumeProp);
-        void syncWLTo2D(vtkResliceImageViewer* axial, vtkResliceImageViewer* coronal, vtkResliceImageViewer* sagittal);
+        void applyPreset(const QString& name, 
+                         vtkResliceImageViewer* axial, 
+                         vtkResliceImageViewer* coronal, 
+                         vtkResliceImageViewer* sagittal, 
+                         vtkVolumeProperty* volumeProp);
+        void syncWLTo2D(vtkResliceImageViewer* axial, 
+                        vtkResliceImageViewer* coronal, 
+                        vtkResliceImageViewer* sagittal);
 
     private:
         TransferFunctionStore m_store;

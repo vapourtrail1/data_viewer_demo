@@ -29,7 +29,7 @@ namespace core::io {
         reader->SetDirectoryName(QFile::encodeName(dir));
 
         try {
-			reader->Update();//尝试执行这段代码 ，如果失败 ，抛出异常
+            reader->Update();//尝试执行这段代码 ，如果失败 ，抛出异常
         }
         catch (...) {
             result.code = core::common::ErrorCode::IoFailed;

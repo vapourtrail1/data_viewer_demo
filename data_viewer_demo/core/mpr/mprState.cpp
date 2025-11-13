@@ -1,12 +1,17 @@
 #include "core/mpr/mprState.h"
 #include <vtkImageData.h>
 #include <vtkResliceCursor.h>
+#include <qDebug>
 
+//bind: 绑定,连接
+//保存当前数据 记录光标状态
+//m_cursor: vtkResliceCursor 负责记录三向切片的光标位置与方向等信息
+//m_image: vtkImageData 保存当前绑定的体数据
 namespace core::mpr {
 
     MprState::MprState()
     {
-        // vtkResliceCursor 负责记录三个正交平面的切片信息。
+		// vtkResliceCursor 负责记录三向切片的光标位置与方向等信息
         m_cursor = vtkResliceCursor::New();
     }
 
@@ -47,8 +52,8 @@ namespace core::mpr {
     {
         if (!m_cursor || !m_image) return 0;
         double c[3]; m_cursor->GetCenter(c);
-        double origin[3]; m_image->GetOrigin(origin);
-        double spacing[3]; m_image->GetSpacing(spacing);
+		double origin[3]; m_image->GetOrigin(origin);//GetOrigin:获取图像数据的原点坐标 
+		double spacing[3]; m_image->GetSpacing(spacing);//GetSpacing:获取图像数据的体素间距
         return static_cast<int>(std::round((c[2] - origin[2]) / spacing[2]));
     }
 
@@ -71,13 +76,14 @@ namespace core::mpr {
     }
 
 
-    void MprState::setIndices(int axial, int coronal, int sagittal)
+	void MprState::setIndices(int axial, int coronal, int sagittal)//设置索引
     {
         if (!m_cursor || !m_image) return;
 
         double origin[3];  m_image->GetOrigin(origin);
         double spacing[3]; m_image->GetSpacing(spacing);
         double c[3];       m_cursor->GetCenter(c);
+		/*qDebug() << origin[0] << origin[1] << origin[2];*/
 
         c[2] = origin[2] + axial * spacing[2]; // axial->Z
         c[1] = origin[1] + coronal * spacing[1]; // coronal->Y

@@ -12,7 +12,11 @@
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 #include <vtkResliceCursorPolyDataAlgorithm.h>
+#include <vtkCamera.h>
 #include "core/mpr/mprState.h"
+
+
+//assembly: ×°Åä,×éºÏ
 
 namespace core::mpr {
 
@@ -308,8 +312,6 @@ namespace core::mpr {
         m_cursorActor = vtkResliceCursorActor::New();
         m_cursorActor->GetCursorAlgorithm()->SetResliceCursor(m_state->cursor());
 
-
-
         m_volumeMapper = vtkSmartVolumeMapper::New();
         m_volumeMapper->SetInputData(m_state->image());
 
@@ -324,6 +326,12 @@ namespace core::mpr {
         m_renderer3D->AddActor(m_cursorActor);
         m_renderer3D->AddVolume(m_volume);
         m_renderer3D->ResetCamera();
+
+        auto cam = m_renderer3D->GetActiveCamera();
+        if (cam) {
+            cam->Zoom(30);  
+            m_renderer3D->ResetCameraClippingRange();
+        }
     }
 
     void MprAssembly::setup3DSceneRaw(vtkRenderWindow* window, vtkRenderWindowInteractor* interactor)
@@ -340,8 +348,6 @@ namespace core::mpr {
         m_cursorActor = vtkResliceCursorActor::New();
         m_cursorActor->GetCursorAlgorithm()->SetResliceCursor(m_state->cursor());
 
-
-
         m_volumeMapper = vtkSmartVolumeMapper::New();
         m_volumeMapper->SetInputData(m_state->image());
 
@@ -356,6 +362,18 @@ namespace core::mpr {
         m_renderer3D->AddActor(m_cursorActor);
         m_renderer3D->AddVolume(m_volume);
         m_renderer3D->ResetCamera();
+
+        auto cam = m_renderer3D->GetActiveCamera();
+        if (cam) {
+            cam->Zoom(30);  
+            m_renderer3D->ResetCameraClippingRange();
+           /* auto GetCenter(double[3]);
+            if (GetCenter) 
+            {
+                cam->Zoom(35);
+            }*/
+
+        }
     }
 
 } // namespace core::mpr

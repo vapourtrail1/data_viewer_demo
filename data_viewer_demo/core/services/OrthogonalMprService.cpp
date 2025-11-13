@@ -13,7 +13,7 @@
 VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2);
 #endif
 
-// 
+
 #include "core/mpr/mprAssembly.h"
 #include "core/mpr/mprState.h"
 #include "core/mpr/mprInteractionRouter.h"
@@ -44,7 +44,7 @@ namespace core::services {
             static ResliceCursorCallback* New() { return new ResliceCursorCallback(); }
             vtkTypeMacro(ResliceCursorCallback, vtkCommand);
             void Execute(vtkObject*, unsigned long, void*) override {
-                // 需要补充：联动滚片时刷新 3D 体渲染等
+                //还没写
             }
         };
     } // anonymous namespace
@@ -105,7 +105,7 @@ namespace core::services {
         vtkRenderWindow* coronalWindow,
         vtkRenderWindowInteractor* coronalInteractor,
         vtkRenderWindow* volumeWindow,
-		vtkRenderWindowInteractor* volumeInteractor)//这个函数的意思是初始化查看器
+		vtkRenderWindowInteractor* volumeInteractor)//这个函数的意思是初始化
     {
 #if !USE_VTK
         Q_UNUSED(axialWindow); Q_UNUSED(axialInteractor);
@@ -135,12 +135,14 @@ namespace core::services {
                 impl_->assembly->axialViewer(),
                 impl_->assembly->coronalViewer(),
                 impl_->assembly->sagittalViewer());
-            // 如需默认预设，可在此调用：
-            // impl_->render->applyPreset(QStringLiteral("SoftTissue"),
-            //     impl_->assembly->axialViewer(),
-            //     impl_->assembly->coronalViewer(),
-            //     impl_->assembly->sagittalViewer(),
-            //     impl_->assembly->volumeProperty());
+             
+            impl_->render->applyPreset(QStringLiteral("SoftTissue"),
+                impl_->assembly->axialViewer(),
+                impl_->assembly->coronalViewer(),
+                impl_->assembly->sagittalViewer(),
+                impl_->assembly->volumeProperty());
+
+			impl_->assembly->refreshAll();
         }
 
         // 居中并刷新
