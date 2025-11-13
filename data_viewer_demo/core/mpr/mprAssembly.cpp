@@ -367,12 +367,6 @@ namespace core::mpr {
         if (cam) {
             cam->Zoom(30);  
             m_renderer3D->ResetCameraClippingRange();
-           /* auto GetCenter(double[3]);
-            if (GetCenter) 
-            {
-                cam->Zoom(35);
-            }*/
-
         }
     }
 
