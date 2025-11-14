@@ -11,7 +11,6 @@
 #include <QFrame>
 
 
-
 #if USE_VTK
 #include <QVTKOpenGLNativeWidget.h>
 #endif
