@@ -8,6 +8,7 @@
 #include <QTabBar>
 
 class DocumentPage;
+class StartPagePage;
 class EditPage;
 class VolumePage;
 class SelectPage;
@@ -57,6 +58,7 @@ private:
     // ---- 中央区 ----
     QPointer<QStackedWidget> stack_;
 	QPointer<DocumentPage> pageDocument_;//文档页面的指针
+    QPointer<StartPagePage> pageStart_;
 	QPointer<EditPage> pageEdit_;
 	QPointer<VolumePage> pageVolume_;
 	QPointer<SelectPage> pageSelect_;
@@ -70,4 +72,3 @@ private:
 	QPointer<AnimationPage> pageAnimation_;
 	QPointer<PerformancePage> pagePerformance_;
 };
-//gitt

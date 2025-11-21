@@ -2,13 +2,13 @@
 #include "core/mpr/mprState.h"
 
 #include <QVTKOpenGLNativeWidget.h>
+#include <vtkAxesActor.h>
+#include <vtkOrientationMarkerWidget.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
 #include <vtkResliceCursor.h>
-#include <vtkResliceCursorActor.h>
-#include <vtkResliceCursorPolyDataAlgorithm.h>
 #include <vtkResliceImageViewer.h>
 #include <vtkSmartPointer.h>
 #include <vtkSmartVolumeMapper.h>
@@ -20,6 +20,9 @@
 #include <vtkCallbackCommand.h>
 #include <vtkCommand.h>
 #include <vtkCamera.h>
+#include <vtkProperty.h>
+
+#include <qDebug>
 
 namespace core::mpr {
 
@@ -41,7 +44,6 @@ namespace core::mpr {
         m_sagittalWidget = sagittal;
         m_volumeWidget = volume3D;
 
-     
         m_axialRawWindow = nullptr;
         m_axialRawInteractor = nullptr;
         m_coronalRawWindow = nullptr;
@@ -70,7 +72,6 @@ namespace core::mpr {
         m_volumeRawWindow = volumeWindow;
         m_volumeRawInteractor = volumeInteractor;
 
-        // 清空 Qt Widget 模式
         m_axialWidget = nullptr;
         m_coronalWidget = nullptr;
         m_sagittalWidget = nullptr;
@@ -84,7 +85,6 @@ namespace core::mpr {
         if (m_coronalViewer) { m_coronalViewer->Delete(); m_coronalViewer = nullptr; }
         if (m_sagittalViewer) { m_sagittalViewer->Delete(); m_sagittalViewer = nullptr; }
 
-        if (m_cursorActor) { m_cursorActor->Delete();   m_cursorActor = nullptr; }
         if (m_volumeMapper) { m_volumeMapper->Delete();  m_volumeMapper = nullptr; }
         if (m_volume) { m_volume->Delete();        m_volume = nullptr; }
         if (m_volumeProperty) { m_volumeProperty->Delete(); m_volumeProperty = nullptr; }
@@ -112,8 +112,11 @@ namespace core::mpr {
         if (m_sagittalWindow) { m_sagittalWindow->Delete(); m_sagittalWindow = nullptr; }
         if (m_volumeWindow) { m_volumeWindow->Delete();  m_volumeWindow = nullptr; }
 
-        m_axialWidget = m_coronalWidget = m_sagittalWidget = m_volumeWidget = nullptr;
+        //坐标轴析构
+		if (m_axesActor) { m_axesActor->Delete(); m_axesActor = nullptr; }
+        if (m_axesWidget) { m_axesWidget->Delete(); m_axesWidget = nullptr; }
 
+        m_axialWidget = m_coronalWidget = m_sagittalWidget = m_volumeWidget = nullptr;
         m_axialRawWindow = m_coronalRawWindow = m_sagittalRawWindow = m_volumeRawWindow = nullptr;
         m_axialRawInteractor = m_coronalRawInteractor = m_sagittalRawInteractor = m_volumeRawInteractor = nullptr;
     }
@@ -135,11 +138,12 @@ namespace core::mpr {
         if (m_axialViewer) { m_axialViewer->Delete();   m_axialViewer = nullptr; }
         if (m_coronalViewer) { m_coronalViewer->Delete(); m_coronalViewer = nullptr; }
         if (m_sagittalViewer) { m_sagittalViewer->Delete(); m_sagittalViewer = nullptr; }
-        if (m_cursorActor) { m_cursorActor->Delete();   m_cursorActor = nullptr; }
         if (m_volumeMapper) { m_volumeMapper->Delete();  m_volumeMapper = nullptr; }
         if (m_volume) { m_volume->Delete();        m_volume = nullptr; }
         if (m_volumeProperty) { m_volumeProperty->Delete(); m_volumeProperty = nullptr; }
         if (m_renderer3D) { m_renderer3D->Delete();    m_renderer3D = nullptr; }
+		if (m_axesWidget) { m_axesWidget->Delete(); m_axesWidget = nullptr; }//坐标轴
+        if (m_axesActor) { m_axesActor->Delete();  m_axesActor = nullptr; }
 
         m_axialViewer = vtkResliceImageViewer::New();
         m_coronalViewer = vtkResliceImageViewer::New();
@@ -161,7 +165,7 @@ namespace core::mpr {
                 &m_sagittalWindow);
             setup3DScene(m_volumeWidget);
         }
-        // 裸 VTK 模式
+        // VTK 模式
         else if (m_axialRawWindow && m_coronalRawWindow &&
             m_sagittalRawWindow && m_volumeRawWindow) {
 
@@ -179,10 +183,41 @@ namespace core::mpr {
                 m_sagittalRawInteractor);
             setup3DSceneRaw(m_volumeRawWindow, m_volumeRawInteractor);
         }
+        SetAxesPosition(0, 0);  
+        SetAxesSize(0.27, 0.27);
     }
 
-    // 工具：2D / 3D 管线 
+    void MprAssembly::SetAxesPosition(double x, double y) {
+        m_axesX = x;
+        m_axesY = y;
+        UpdateAxesViewPort();
+    }
 
+    void MprAssembly::SetAxesSize(double w, double h) {
+        m_axesW = w;
+        m_axesH = h;
+        UpdateAxesViewPort();
+    }
+
+    void MprAssembly::UpdateAxesViewPort() {
+        if (!m_axesWidget) {
+            return;
+        }
+
+        double x_min = m_axesX;
+        double y_min = m_axesY;
+        double x_max = m_axesX + m_axesW;
+        double y_max = m_axesY + m_axesH;
+
+        m_axesWidget->SetViewport(x_min, y_min, x_max, y_max);
+
+        if (m_volumeWindow) {
+            m_volumeWindow->Render();
+        }
+
+    }
+
+    //2D/3D 管线 
     void MprAssembly::setup2DViewer(vtkResliceImageViewer* viewer,
         int orientation,
         QVTKOpenGLNativeWidget* widget,
@@ -194,7 +229,6 @@ namespace core::mpr {
 
         auto* window = vtkGenericOpenGLRenderWindow::New();
         widget->setRenderWindow(window);
-
         viewer->SetRenderWindow(window);
         viewer->SetupInteractor(widget->interactor());
         viewer->SetResliceCursor(m_state->cursor());
@@ -242,9 +276,6 @@ namespace core::mpr {
         m_renderer3D = vtkRenderer::New();
         m_volumeWindow->AddRenderer(m_renderer3D);
 
-        m_cursorActor = vtkResliceCursorActor::New();
-        m_cursorActor->GetCursorAlgorithm()->SetResliceCursor(m_state->cursor());
-
         m_volumeMapper = vtkSmartVolumeMapper::New();
         m_volumeMapper->SetInputData(m_state->image());
 
@@ -252,19 +283,34 @@ namespace core::mpr {
         m_volumeProperty->ShadeOn();
         m_volumeProperty->SetInterpolationTypeToLinear();
 
+        // 3D 坐标轴  可修改
+        auto* interactor = widget->interactor();
+        if (interactor) {
+            m_axesActor = vtkAxesActor::New();
+            // 轴长度
+            m_axesActor->SetTotalLength(80.0, 80.0, 80.0);
+            m_axesWidget = vtkOrientationMarkerWidget::New();
+            m_axesWidget->SetOrientationMarker(m_axesActor);
+            // 坐标轴显示在左下角小窗口 
+            m_axesWidget->SetInteractor(interactor);
+            m_axesWidget->SetEnabled(1);
+            m_axesWidget->InteractiveOff();
+            UpdateAxesViewPort();
+        }
+
         m_volume = vtkVolume::New();
         m_volume->SetMapper(m_volumeMapper);
         m_volume->SetProperty(m_volumeProperty);
 
-        m_renderer3D->AddActor(m_cursorActor);
         m_renderer3D->AddVolume(m_volume);
         m_renderer3D->ResetCamera();
 
-		auto* camera = m_renderer3D->GetActiveCamera();
-        if (camera) {
-            camera->Zoom(30);
-			m_renderer3D->ResetCameraClippingRange();//放大厚重新设置裁剪范围
-        }
+        
+		//auto* camera = m_renderer3D->GetActiveCamera();
+  //      if (camera) {
+  //          camera->Zoom(30);
+		//	m_renderer3D->ResetCameraClippingRange();//放大厚重新设置裁剪范围
+  //      }
     }
 
     void MprAssembly::setup3DSceneRaw(vtkRenderWindow* window,
@@ -279,9 +325,6 @@ namespace core::mpr {
         m_renderer3D = vtkRenderer::New();
         window->AddRenderer(m_renderer3D);
 
-        m_cursorActor = vtkResliceCursorActor::New();
-        m_cursorActor->GetCursorAlgorithm()->SetResliceCursor(m_state->cursor());
-
         m_volumeMapper = vtkSmartVolumeMapper::New();
         m_volumeMapper->SetInputData(m_state->image());
 
@@ -289,19 +332,29 @@ namespace core::mpr {
         m_volumeProperty->ShadeOn();
         m_volumeProperty->SetInterpolationTypeToLinear();
 
+        if (interactor) {
+            m_axesActor = vtkAxesActor::New();
+            m_axesActor->SetTotalLength(99, 99, 99);
+            m_axesWidget = vtkOrientationMarkerWidget::New();
+            m_axesWidget->SetOrientationMarker(m_axesActor);
+            m_axesWidget->SetInteractor(interactor);
+            m_axesWidget->SetEnabled(1);
+            m_axesWidget->InteractiveOff();
+            UpdateAxesViewPort();
+        }
+
         m_volume = vtkVolume::New();
         m_volume->SetMapper(m_volumeMapper);
         m_volume->SetProperty(m_volumeProperty);
 
-        m_renderer3D->AddActor(m_cursorActor);
         m_renderer3D->AddVolume(m_volume);
         m_renderer3D->ResetCamera();
 
-		auto carema = m_renderer3D->GetActiveCamera();
+		/*auto carema = m_renderer3D->GetActiveCamera();
         if (carema) {
 			carema->Zoom(30);
             m_renderer3D->ResetCameraClippingRange();
-        }
+        }*/
     }
 
     //  刷新 & getter 
@@ -352,11 +405,6 @@ namespace core::mpr {
         return m_sagittalViewer;
     }
 
-    vtkResliceCursorActor* MprAssembly::cursorActor() const
-    {
-        return m_cursorActor;
-    }
-
     vtkVolumeProperty* MprAssembly::volumeProperty() const
     {
         return m_volumeProperty;
@@ -404,43 +452,61 @@ namespace core::mpr {
         const int cy = centerIndex(ext[2], ext[3]);
         const int cz = centerIndex(ext[4], ext[5]);
 
-        //  X（Sagittal）
-        m_planeX = vtkSmartPointer<vtkImagePlaneWidget>::New();
-        m_planeX->SetInteractor(interactor);
-        m_planeX->SetInputData(img);
-        m_planeX->SetLookupTable(m_lut);
-        m_planeX->TextureInterpolateOn();
-        m_planeX->SetResliceInterpolateToLinear();
-        m_planeX->DisplayTextOff();
-        m_planeX->SetPlaneOrientationToXAxes();
-        m_planeX->SetSliceIndex(cx);
-        m_planeX->On();
+        // 统一封装lambda：创建+配置 plane 
+        auto setupPlane = [this, interactor, img](vtkSmartPointer<vtkImagePlaneWidget>& plane,
+            int orientation,
+            int sliceIndex)
+            {
+                plane = vtkSmartPointer<vtkImagePlaneWidget>::New();
+                plane->SetInteractor(interactor);
+                plane->SetInputData(img);
+                plane->SetLookupTable(m_lut);
+                plane->TextureInterpolateOn();
+                plane->SetResliceInterpolateToLinear();
+                plane->DisplayTextOff();
 
-        //  Y（Coronal）
-        m_planeY = vtkSmartPointer<vtkImagePlaneWidget>::New();
-        m_planeY->SetInteractor(interactor);
-        m_planeY->SetInputData(img);
-        m_planeY->SetLookupTable(m_lut);
-        m_planeY->TextureInterpolateOn();
-        m_planeY->SetResliceInterpolateToLinear();
-        m_planeY->DisplayTextOff();
-        m_planeY->SetPlaneOrientationToYAxes();
-        m_planeY->SetSliceIndex(cy);
-        m_planeY->On();
+                // 设定朝向
+                if (orientation == 0) {
+                    plane->SetPlaneOrientationToXAxes();
+                }
+                else if (orientation == 1) {
+                    plane->SetPlaneOrientationToYAxes();
+                }
+                else if (orientation == 2) {
+                    plane->SetPlaneOrientationToZAxes();
+                }
 
-        //  Z（Axial）
-        m_planeZ = vtkSmartPointer<vtkImagePlaneWidget>::New();
-        m_planeZ->SetInteractor(interactor);
-        m_planeZ->SetInputData(img);
-        m_planeZ->SetLookupTable(m_lut);
-        m_planeZ->TextureInterpolateOn();
-        m_planeZ->SetResliceInterpolateToLinear();
-        m_planeZ->DisplayTextOff();
-        m_planeZ->SetPlaneOrientationToZAxes();
-        m_planeZ->SetSliceIndex(cz);
-        m_planeZ->On();
+                plane->SetSliceIndex(sliceIndex);
 
-        // —— 3D -> 2D：任意平面交互都触发同步 —— 
+                // 1) 只保留三种动作：光标、slice 平移
+               
+                // 左键：沿法向移动 slice
+                plane->SetLeftButtonAction(vtkImagePlaneWidget::VTK_SLICE_MOTION_ACTION);
+
+                // 右键只是选中
+                plane->SetRightButtonAction(vtkImagePlaneWidget::VTK_CURSOR_ACTION);
+
+                // 2) 把 margin 区域关掉，避免点到边上进入旋转 / 缩放模式
+                plane->SetMarginSizeX(0.0);
+                plane->SetMarginSizeY(0.0);
+                plane->GetMarginProperty()->SetOpacity(0.0);   // 看不见 margin
+
+                // 3) 限制平面在体数据范围内，避免拖出 volume
+                plane->RestrictPlaneToVolumeOn();
+
+                plane->On();
+            };
+
+        //  X Sagittal
+        setupPlane(m_planeX, 0, cx);
+
+        //  Y Coronal
+        setupPlane(m_planeY, 1, cy);
+
+        //  Z Axial
+        setupPlane(m_planeZ, 2, cz);
+
+        //  3D -> 2D：任意平面交互都触发同步 
         m_cb3D = vtkSmartPointer<vtkCallbackCommand>::New();
         m_cb3D->SetClientData(this);
         m_cb3D->SetCallback([](vtkObject*, unsigned long, void* clientData, void*) {
@@ -452,6 +518,7 @@ namespace core::mpr {
         m_planeZ->AddObserver(vtkCommand::InteractionEvent, m_cb3D);
     }
 
+
 	void MprAssembly::syncFrom3DWidgets()//这个函数会被3D平面的交互事件调用
     {
         if (!m_planeX || !m_planeY || !m_planeZ) return;
@@ -461,7 +528,6 @@ namespace core::mpr {
         const int j = m_planeY->GetSliceIndex(); // coronal
         const int k = m_planeZ->GetSliceIndex(); // axial
 
-        // 若你的三视图朝向定义不同，请在此做映射调整
         m_sagittalViewer->SetSlice(i);
         m_coronalViewer->SetSlice(j);
         m_axialViewer->SetSlice(k);
@@ -478,19 +544,23 @@ namespace core::mpr {
         }
     }
 
+    //
 	void MprAssembly::on2DSliceChanged(int axialZ, int coronalY, int sagittalX)//这个函数会被2D视图切片变化调用
     {
         if (m_planeX) {
             m_planeX->SetSliceIndex(sagittalX);
             m_planeX->UpdatePlacement();
+            qDebug() << "aaa";
         }
         if (m_planeY) {
             m_planeY->SetSliceIndex(coronalY);
             m_planeY->UpdatePlacement();
+            qDebug() << "bbb";
         }
         if (m_planeZ) {
             m_planeZ->SetSliceIndex(axialZ);
             m_planeZ->UpdatePlacement();
+            qDebug() << "ccc";
         }
 
         if (m_volumeWindow) {

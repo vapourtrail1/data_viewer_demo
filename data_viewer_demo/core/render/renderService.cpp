@@ -1,5 +1,4 @@
 #include "core/render/renderService.h"
-
 #include <vtkResliceImageViewer.h>
 #include <vtkVolumeProperty.h>
 
@@ -19,7 +18,7 @@ namespace core::render {
 
     void RenderService::applyPreset(const QString& name, vtkResliceImageViewer* axial, vtkResliceImageViewer* coronal, vtkResliceImageViewer* sagittal, vtkVolumeProperty* volumeProp)
     {
-        // 首先使用预设更新当前窗宽/窗位。
+        // 使用预设更新当前窗宽/窗位。
         const core::common::WL preset = m_store.presetWL(name);
         setWL(preset.first, preset.second);
         syncWLTo2D(axial, coronal, sagittal);

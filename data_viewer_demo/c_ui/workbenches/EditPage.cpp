@@ -77,8 +77,6 @@ static QIcon loadIconFor(const QString& text) {
         { QStringLiteral("动态重命名"),  ":/icons/icons/dynamic_rename.png" },
     };
 
-   
-
     for (const auto& m : map) {
         if (text == m.key) {
             const QString path = QString::fromUtf8(m.file);
@@ -89,8 +87,6 @@ static QIcon loadIconFor(const QString& text) {
             }
         }
     }
-
-    
     return QIcon(":/icons/icons/move.png");
 }
 
@@ -189,8 +185,8 @@ QWidget* EditPage::buildRibbon(QWidget* parent)
         button->setText(wrappedText);
         button->setIcon(loadIconFor(action.text));
         button->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-        button->setIconSize(QSize(48, 48));
-        button->setMinimumSize(QSize(85, 90));
+        button->setIconSize(QSize(40, 40));
+        button->setMinimumSize(QSize(70, 90));
 
        
         if (action.hasMenu) {

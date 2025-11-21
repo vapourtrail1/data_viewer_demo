@@ -46,9 +46,9 @@ namespace core::mpr {
         connectViewer(m_assembly->coronalViewer());
         connectViewer(m_assembly->sagittalViewer());
 
-        if (auto* actor = m_assembly->cursorActor()) {
+        /*if (auto* actor = m_assembly->cursorActor()) {
             m_connector->Connect(actor, vtkCommand::InteractionEvent, this, SLOT(handleInteraction()));
-        }
+        }*/
 
         m_timer.start();
     }

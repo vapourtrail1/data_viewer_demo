@@ -11,7 +11,7 @@ namespace core::mpr {
     class MprState;
 
     /**
-     * @brief MprInteractionRouter 将 VTK 交互事件映射为状态更新。
+     MprInteractionRouter 将 VTK 交互事件映射为状态更新。
      */
     class MprInteractionRouter : public QObject
     {

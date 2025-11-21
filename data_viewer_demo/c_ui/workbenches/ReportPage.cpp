@@ -170,12 +170,9 @@ QWidget* ReportPage::buildRibbon10(QWidget* parent)
         // 如果你想把“椭圆3D”也放进来，把上面行数调成 2×5 或替换掉其中一个即可
     };
 
-
-
     QWidget* gridHolder_10 = nullptr;//这个指针的意思是 用来承载那个 2×4 的小方阵
     QGridLayout* grid_10 = nullptr;//这个指针是用来管理那个小方阵的布局
     int groupedCount_10 = 0;//记录已经放进小方阵的按钮数量
-
 
     for (const auto& action : actions10)
     {

@@ -1,5 +1,6 @@
 ﻿#include "c_ui/MainWindow.h"
 #include "c_ui/workbenches/DocumentPage.h"
+#include "c_ui/workbenches/StartPage.h"
 #include "c_ui/workbenches/EditPage.h"
 #include "c_ui/workbenches/VolumePage.h"
 #include "c_ui/workbenches/SelectPage.h"
@@ -49,8 +50,6 @@
 CTViewer::CTViewer(QWidget* parent)
     : QMainWindow(parent)
 {
-    
-
     // ---- 无边框窗口 + 深色主题 ----
     setWindowFlag(Qt::FramelessWindowHint);
     setWindowTitle(QStringLiteral("data_viewer_demo"));
@@ -65,7 +64,6 @@ CTViewer::CTViewer(QWidget* parent)
     setDefaults();      // 默认状态
 
     statusBar()->showMessage(QStringLiteral("就绪"));
-
 }
 
 CTViewer::~CTViewer() = default;
@@ -200,7 +198,6 @@ void CTViewer::buildTitleBar()
 	//把整个标题栏放到主窗口
 	setMenuWidget(topBarContainer);
 
-
     //  连接标题栏按钮 
     connect(btnMinimize_, &QToolButton::clicked, this, &CTViewer::showMinimized);
     connect(btnMaximize_, &QToolButton::clicked, this, [this]() {
@@ -220,6 +217,11 @@ void CTViewer::buildTitleBar()
         if (index == 0 && pageDocument_) {
 			stack_->setCurrentWidget(pageDocument_);//setcurrentwidget是切换当前显示的页面
             statusBar()->showMessage(QStringLiteral("已切换到“文件”功能区"), 3000);
+            return;
+        }
+        else if (index == 1 && pageStart_) {
+            stack_->setCurrentWidget(pageStart_);
+            statusBar()->showMessage(QStringLiteral("已切换到“开始”功能区"), 3000);
             return;
         }
         else if (index == 2 && pageEdit_) {
@@ -359,6 +361,8 @@ void CTViewer::buildCentral()
     //添加多个页面
     pageDocument_ = new DocumentPage(stack_);
     stack_->addWidget(pageDocument_);
+    pageStart_ = new StartPagePage(stack_);
+    stack_->addWidget(pageStart_);
 	pageEdit_ = new EditPage(stack_);
 	stack_->addWidget(pageEdit_);
 	pageVolume_ = new VolumePage(stack_);

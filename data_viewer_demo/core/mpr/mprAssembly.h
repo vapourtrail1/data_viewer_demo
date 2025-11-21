@@ -17,6 +17,8 @@ class vtkImageData;
 class vtkLookupTable;
 class vtkCallbackCommand;
 class vtkImagePlaneWidget;
+class vtkAxesActor;
+class vtkOrientationMarkerWidget;
 
 namespace core::mpr {
 
@@ -49,10 +51,10 @@ namespace core::mpr {
             vtkRenderWindow* volumeWindow,
             vtkRenderWindowInteractor* volumeInteractor);
 
-        // 释放内部持有的 VTK 对象（不删除 Qt Widget / 外部 window）
+        // 释放内部持有的 VTK 对象 不删除 Qt Widget 和 外部 window
         void detach();
 
-        // 绑定状态（里面有 image / reslice cursor）
+        // 绑定状态 里面有 image  reslice cursor
         void setState(MprState* state);
 
         // 建立三视图 + 3D 的基础管线（不含 3D 三平面）
@@ -71,12 +73,15 @@ namespace core::mpr {
         // 刷新所有视图
         void refreshAll();
 
+        // 坐标轴控制接口
+        void SetAxesPosition(double x, double y);
+        void SetAxesSize(double w, double h);
+        void UpdateAxesViewPort();
+
         // 对外 getter，给 OrthogonalMprService / RenderService / Router 用 
         vtkResliceImageViewer* axialViewer() const;
         vtkResliceImageViewer* coronalViewer() const;
         vtkResliceImageViewer* sagittalViewer() const;
-
-        vtkResliceCursorActor* cursorActor() const;
         vtkVolumeProperty* volumeProperty() const;
 
     private:
@@ -102,7 +107,7 @@ namespace core::mpr {
         // 状态（图像 + Reslice Cursor） 
         MprState* m_state = nullptr;
 
-        // 成员：Qt Widget 模式 
+        // 成员：Qt Widget 
         QVTKOpenGLNativeWidget* m_axialWidget = nullptr;
         QVTKOpenGLNativeWidget* m_coronalWidget = nullptr;
         QVTKOpenGLNativeWidget* m_sagittalWidget = nullptr;
@@ -113,7 +118,16 @@ namespace core::mpr {
         vtkGenericOpenGLRenderWindow* m_sagittalWindow = nullptr;
         vtkGenericOpenGLRenderWindow* m_volumeWindow = nullptr;
 
-        // 成员：裸 VTK 模式 
+        //坐标轴
+		vtkAxesActor* m_axesActor = nullptr;
+        vtkOrientationMarkerWidget* m_axesWidget = nullptr;
+        //坐标轴成员变量
+        double m_axesX = 0.0;
+        double m_axesY = 0.0;
+        double m_axesW = 0.4;
+        double m_axesH = 0.4;
+
+        // 成员：VTK 模式 
         vtkRenderWindow* m_axialRawWindow = nullptr;
         vtkRenderWindowInteractor* m_axialRawInteractor = nullptr;
         vtkRenderWindow* m_coronalRawWindow = nullptr;
@@ -128,14 +142,12 @@ namespace core::mpr {
         vtkResliceImageViewer* m_coronalViewer = nullptr;
         vtkResliceImageViewer* m_sagittalViewer = nullptr;
 
-        vtkResliceCursorActor* m_cursorActor = nullptr;
-
         vtkSmartVolumeMapper* m_volumeMapper = nullptr;
         vtkVolume* m_volume = nullptr;
         vtkVolumeProperty* m_volumeProperty = nullptr;
         vtkRenderer* m_renderer3D = nullptr;
 
-        // 新增：3D 三张平面 widget 与 LUT / 回调 
+        // 3D 三张平面 widget 与 LUT / 回调 
         vtkSmartPointer<vtkImagePlaneWidget> m_planeX; // 垂直 X
         vtkSmartPointer<vtkImagePlaneWidget> m_planeY; // 垂直 Y
         vtkSmartPointer<vtkImagePlaneWidget> m_planeZ; // 垂直 Z

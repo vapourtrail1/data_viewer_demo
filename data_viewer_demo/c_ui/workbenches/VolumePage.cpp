@@ -76,7 +76,7 @@ static QIcon loadIconFor(const QString& text) {
         { QStringLiteral("侵蚀"),  ":/volume_icons/icons_other/volume_icons/erosion.png" },
         { QStringLiteral("膨胀"),  ":/volume_icons/icons_other/volume_icons/dilation.png" },
         { QStringLiteral("应用不透明映射"),  ":/volume_icons/icons_other/volume_icons/apply_opacity_mapping.png" },
-        { QStringLiteral("FIB-SEM修正"),  ":/volume_icons/icons_other/volume_icons/FIB-SEM_fix.png" },
+        { QStringLiteral("FIB-SEM 修正"),  ":/volume_icons/icons_other/volume_icons/FIB-SEM_fix.png" },
         { QStringLiteral("合并和重新采样"),  ":/volume_icons/icons_other/volume_icons/merge_and_resample.png" },
         { QStringLiteral("体积投影器"),  ":/volume_icons/icons_other/volume_icons/volume_projector.png" },
     };
@@ -180,7 +180,7 @@ QWidget* VolumePage::buildRibbon02(QWidget* parent)
         { QStringLiteral("中值"), 0 },
         { QStringLiteral("侵蚀"), 0 },
         { QStringLiteral("膨胀"), 0 },
-        { QStringLiteral("应用不透明度"), 0 },
+        { QStringLiteral("应用不透明映射"), 0 },
         { QStringLiteral("FIB-SEM 修正"), 0 },
         { QStringLiteral("合并和重新采样"), 0 },
         { QStringLiteral("体积投影器"), 0 }

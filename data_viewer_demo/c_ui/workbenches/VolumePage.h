@@ -18,5 +18,4 @@ public:
 
 private:
 	QWidget* buildRibbon02(QWidget* parent);
-
 };
