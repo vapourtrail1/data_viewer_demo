@@ -84,7 +84,7 @@ void DocumentPage::buildLeftDock()
     addItem(QStringLiteral("保存"));
     addItem(QStringLiteral("另存为"));
     addItem(QStringLiteral("打包"));
-    addItem(QStringLiteral("导出为mvgl"));
+    addItem(QStringLiteral("导出为"));
     addSeparator();
 
     addItem(QStringLiteral("快速导入"));
