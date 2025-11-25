@@ -2,14 +2,7 @@
 
 #include <QWidget>
 #include <QPointer>
-#include <QString>
-#include <memory>
-
-#include "core/common/VtkMacros.h" // ×Ô¶¯¼ì²â VTK ÊÇ·ñ¿ÉÓÃ£¬±ÜÃâÊÖ¶¯¶¨ÒåÒÅÂ©¡£
-
-class QLabel;
-class QLineEdit;
-class QPushButton;
+#include "core/common/VtkMacros.h" // è‡ªåŠ¨æ£€æµ‹ VTK æ˜¯å¦å¯ç”¨ï¼Œé¿å…æ‰‹åŠ¨å®šä¹‰é—æ¼ã€‚
 
 #if USE_VTK
 class QVTKOpenGLNativeWidget;
@@ -19,13 +12,9 @@ class QWidget;
 using PerformancePageViewerWidget = QWidget;
 #endif
 
-namespace core::services {
-    class OrthogonalMprService;
-}
-
 /**
-Ìá¹©ËÄÊÓÍ¼£¨Öá×´/Ê¸×´/¹Ú×´/Ô­Ê¼ÌåÊı¾İ£©µÄÈıÏòÕı½»Áª¶¯Õ¹Ê¾¡£
- */
+ æä¾›å››è§†å›¾ï¼ˆè½´çŠ¶/çŸ¢çŠ¶/å† çŠ¶/åŸå§‹ä½“æ•°æ®ï¼‰çš„ä¸‰å‘æ­£äº¤è”åŠ¨å±•ç¤ºã€‚
+  */
 class PerformancePage : public QWidget
 {
     Q_OBJECT
@@ -33,37 +22,13 @@ public:
     explicit PerformancePage(QWidget* parent = nullptr);
     ~PerformancePage() override;
 
-public slots:
-    /**
-     ¼ÓÔØÖ¸¶¨Ä¿Â¼ÏÂµÄ DICOM ĞòÁĞ²¢Ë¢ĞÂËÄ¸öÊÓÍ¼¡£
-     */
-    void loadDicomDirectory(const QString& directory);
-
 private:
-    /// ¹¹½¨¶¥²¿²Ù×÷À¸ºÍËÄÊÓÍ¼²¼¾Ö¡£
+    /// æ„å»ºé¡¶éƒ¨æ“ä½œæ å’Œå››è§†å›¾å¸ƒå±€ã€‚
     void buildUi();
 
-    /// Á¬½Ó°´Å¥¡¢ÊäÈë¿òµÈĞÅºÅ²Û¡£
-    void wireSignals();
-
-    /// ¸üĞÂ×´Ì¬ÌáÊ¾ÎÄ±¾¡£
-    void updateStatusLabel(const QString& text, bool isError);
-
-#if USE_VTK
-    /// °ó¶¨ VTK ¹ÜÏßÖÁËÄ¸ö QVTK ´°¿Ú¡£
-    void initializeVtkViews();
-#endif
-
 private:
-    QPointer<QLineEdit> inputDirectory_;
-    QPointer<QPushButton> btnBrowse_;
-    QPointer<QPushButton> btnLoad_;
-    QPointer<QLabel> statusLabel_;
-
-	QPointer<PerformancePageViewerWidget> viewAxial_;//ÓÃÓÚÏÔÊ¾Öá×´ÊÓÍ¼¡£
+        QPointer<PerformancePageViewerWidget> viewAxial_;//ç”¨äºæ˜¾ç¤ºè½´çŠ¶è§†å›¾ã€‚
     QPointer<PerformancePageViewerWidget> viewSagittal_;
     QPointer<PerformancePageViewerWidget> viewCoronal_;
     QPointer<PerformancePageViewerWidget> viewVolume_;
-
-    std::unique_ptr<core::services::OrthogonalMprService> mprService_;
 };

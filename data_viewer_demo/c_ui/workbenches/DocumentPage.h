@@ -2,9 +2,18 @@
 #include <QWidget>
 #include <QPointer>
 #include <QListWidget>
+#include <QLineEdit>
+#include <QLabel>
 #include <QPushButton>
 #include <QTableWidget>
 #include <QDebug>
+#include <memory>
+
+class QVBoxLayout;
+
+namespace core::services {
+    class OrthogonalMprService;
+}
 
 class DocumentPage : public QWidget
 {
@@ -23,6 +32,9 @@ private:
     QWidget* buildRightContent(QWidget* parent);
     void wireLeftDockSignals();
     void wireRightContentSignals();
+    void buildOpenDicomToolbar(QVBoxLayout* layout);
+    void updateDicomStatusLabel(const QString& text, bool isError);
+    void loadDicomDirectory(const QString& directory);
 
     QPointer<QListWidget> listNav_;
     QPointer<QPushButton> btnUndo_;
@@ -32,5 +44,11 @@ private:
     QPointer<QPushButton> btnMetrology_;
     QPointer<QPushButton> btnMaterial_;
     QPointer<QTableWidget> tableRecent_;
+    QPointer<QLineEdit> inputDicomDirectory_;
+    QPointer<QPushButton> btnDicomBrowse_;
+    QPointer<QPushButton> btnDicomLoad_;
+    QPointer<QLabel> dicomStatusLabel_;
+
+    std::unique_ptr<core::services::OrthogonalMprService> mprService_;
 };
 

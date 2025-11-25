@@ -2,6 +2,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
+#include <QFileDialog>
 #include <QFrame>
 #include <QLabel>
 #include <QPushButton>
@@ -12,9 +13,12 @@
 #include <QListWidget>
 #include <QListWidgetItem>
 
+#include "core/services/OrthogonalMprService.h"
+
 
 DocumentPage::DocumentPage(QWidget* parent)
     : QWidget(parent)
+    , mprService_(std::make_unique<core::services::OrthogonalMprService>())
 {
     buildUi();
     wireLeftDockSignals();
@@ -206,6 +210,9 @@ QWidget* DocumentPage::buildRightContent(QWidget* parent)
     moduleLayout->addLayout(grid);
     vl->addWidget(moduleFrame);
 
+    // DICOM 打开入口：移动自 PerformancePage 中的工具条逻辑
+    buildOpenDicomToolbar(vl);
+
     // 最近项目
     auto recentFrame = new QFrame(right);
     recentFrame->setObjectName(QStringLiteral("recentFrame"));
@@ -269,7 +276,14 @@ void DocumentPage::wireLeftDockSignals()
         [this](QListWidgetItem* it) {
             const QString t = it ? it->text() : QString();
 
-            if (t == QStringLiteral("CT重建")
+            if (t == QStringLiteral("打开")) {
+                // 点选“打开”时突出当前 DICOM 工具条的输入框，便于用户直接操作
+                emit moduleClicked(QStringLiteral("选择：%1").arg(t));
+                if (inputDicomDirectory_) {
+                    inputDicomDirectory_->setFocus();
+                }
+            }
+            else if (t == QStringLiteral("CT重建")
                 || t == QStringLiteral("快速导入")
                 || t == QStringLiteral("导入")
                 || t == QStringLiteral("导出")) {
@@ -326,4 +340,90 @@ void DocumentPage::wireRightContentSignals()
     connect(btnKeep_, &QPushButton::clicked, this, [this] {
         emit moduleClicked(QStringLiteral("保持当前更改"));
         });
+
+    // DICOM 打开相关信号：保持与原 PerformancePage 的行为一致
+    connect(btnDicomBrowse_, &QPushButton::clicked, this, [this]() {
+        const QString directory = QFileDialog::getExistingDirectory(this, QStringLiteral("选择 DICOM 序列所在目录"));
+        if (!directory.isEmpty()) {
+            inputDicomDirectory_->setText(directory);
+        }
+        });
+
+    connect(btnDicomLoad_, &QPushButton::clicked, this, [this]() {
+        loadDicomDirectory(inputDicomDirectory_->text().trimmed());
+        });
+
+    connect(inputDicomDirectory_, &QLineEdit::returnPressed, this, [this]() {
+        loadDicomDirectory(inputDicomDirectory_->text().trimmed());
+        });
+}
+
+// 构建 DICOM 打开工具条，将原先 PerformancePage 的 UI 移动到欢迎页中
+void DocumentPage::buildOpenDicomToolbar(QVBoxLayout* layout)
+{
+    if (!layout) {
+        return;
+    }
+
+    // 工具条外框
+    auto* toolbar = new QFrame(this);
+    toolbar->setObjectName(QStringLiteral("performanceToolbar"));
+    toolbar->setStyleSheet(QStringLiteral(
+        "QFrame#performanceToolbar{background-color:#242424; border-radius:6px;}"));
+
+    auto* toolbarLayout = new QHBoxLayout(toolbar);
+    toolbarLayout->setContentsMargins(12, 10, 12, 10);
+    toolbarLayout->setSpacing(10);
+
+    auto* directoryLabel = new QLabel(QStringLiteral("DICOM目录:"), toolbar);
+    toolbarLayout->addWidget(directoryLabel);
+
+    inputDicomDirectory_ = new QLineEdit(toolbar);
+    inputDicomDirectory_->setPlaceholderText(QStringLiteral("选择或输入 DICOM 序列所在目录"));
+    toolbarLayout->addWidget(inputDicomDirectory_, 1);
+
+    btnDicomBrowse_ = new QPushButton(QStringLiteral("浏览..."), toolbar);
+    toolbarLayout->addWidget(btnDicomBrowse_);
+
+    btnDicomLoad_ = new QPushButton(QStringLiteral("加载"), toolbar);
+    toolbarLayout->addWidget(btnDicomLoad_);
+
+    dicomStatusLabel_ = new QLabel(QStringLiteral("尚未加载数据"), toolbar);
+    dicomStatusLabel_->setStyleSheet(QStringLiteral("color:#d0d0d0;"));
+    toolbarLayout->addWidget(dicomStatusLabel_);
+
+    layout->addWidget(toolbar);
+}
+
+// 统一更新 DICOM 状态提示，带上错误标记
+void DocumentPage::updateDicomStatusLabel(const QString& text, bool isError)
+{
+    if (!dicomStatusLabel_) {
+        return;
+    }
+
+    dicomStatusLabel_->setText(text);
+    dicomStatusLabel_->setStyleSheet(isError ? QStringLiteral("color:#ff6464;") : QStringLiteral("color:#8ae66a;"));
+}
+
+// 实际加载 DICOM 目录并反馈状态
+void DocumentPage::loadDicomDirectory(const QString& directory)
+{
+    if (directory.isEmpty()) {
+        updateDicomStatusLabel(QStringLiteral("目录为空，请先选择 DICOM 数据。"), true);
+        return;
+    }
+
+    if (!mprService_) {
+        updateDicomStatusLabel(QStringLiteral("加载服务未初始化"), true);
+        return;
+    }
+
+    QString error;
+    if (!mprService_->loadSeries(directory, &error)) {
+        updateDicomStatusLabel(error.isEmpty() ? QStringLiteral("加载失败，请检查目录。") : error, true);
+        return;
+    }
+
+    updateDicomStatusLabel(QStringLiteral("DICOM 数据加载成功"), false);
 }

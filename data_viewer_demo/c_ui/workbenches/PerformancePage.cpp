@@ -1,13 +1,8 @@
 #include "c_ui/workbenches/PerformancePage.h"
-#include "core/services/OrthogonalMprService.h"
 
 #include <QVBoxLayout>
-#include <QHBoxLayout>
 #include <QGridLayout>
-#include <QFileDialog>
 #include <QLabel>
-#include <QLineEdit>
-#include <QPushButton>
 #include <QFrame>
 
 
@@ -17,11 +12,9 @@
 
 PerformancePage::PerformancePage(QWidget* parent)
     : QWidget(parent)
-    , mprService_(std::make_unique<core::services::OrthogonalMprService>())
 {
-    // ---- UI ππΩ®º∞–≈∫≈¡¨Ω” ----
+    // ---- UI ÊûÑÂª∫ ----
     buildUi();
-    wireSignals();
 }
 
 PerformancePage::~PerformancePage() = default;
@@ -31,45 +24,15 @@ void PerformancePage::buildUi()
     setObjectName(QStringLiteral("performancePage"));
     setStyleSheet(QStringLiteral(
         "QWidget#performancePage{background-color:#1c1c1c;}"
-        "QLineEdit{background:#2c2c2c; color:#f0f0f0; border-radius:4px; padding:6px;}"
-        "QPushButton{background:#3a3a3a; color:#f0f0f0; border-radius:4px; padding:6px 12px;}"
-        "QPushButton:hover{background:#4a4a4a;}"
         "QLabel{color:#f0f0f0;}"));
 
     auto* rootLayout = new QVBoxLayout(this);
     rootLayout->setContentsMargins(12, 12, 12, 12);
     rootLayout->setSpacing(8);
 
-    // ---- ∂•≤ø≤Ÿ◊˜¿∏£∫ƒø¬º ‰»Î + ∞¥≈• ----
-    auto* toolbar = new QFrame(this);
-    toolbar->setObjectName(QStringLiteral("performanceToolbar"));
-    toolbar->setStyleSheet(QStringLiteral(
-        "QFrame#performanceToolbar{background-color:#242424; border-radius:6px;}"));
+    // DICOM ÊâìÂºÄÂÖ•Âè£Â∑≤ËøÅÁßªËá≥ DocumentPageÔºå‚ÄúÊÄßËÉΩ‚ÄùÈ°µÂè™‰øùÁïôÊ†∏ÂøÉËßÜÂõæÂÆπÂô®„ÄÇ
 
-    auto* toolbarLayout = new QHBoxLayout(toolbar);
-    toolbarLayout->setContentsMargins(12, 10, 12, 10);
-    toolbarLayout->setSpacing(10);
-
-    auto* directoryLabel = new QLabel(QStringLiteral("DICOMƒø¬º:"), toolbar);
-    toolbarLayout->addWidget(directoryLabel);
-
-    inputDirectory_ = new QLineEdit(toolbar);
-    inputDirectory_->setPlaceholderText(QStringLiteral("—°‘ÒªÚ ‰»Î DICOM –Ú¡–À˘‘⁄ƒø¬º"));
-    toolbarLayout->addWidget(inputDirectory_, 1);
-
-    btnBrowse_ = new QPushButton(QStringLiteral("‰Ø¿¿..."), toolbar);
-    toolbarLayout->addWidget(btnBrowse_);
-
-    btnLoad_ = new QPushButton(QStringLiteral("º”‘ÿ"), toolbar);
-    toolbarLayout->addWidget(btnLoad_);
-
-    statusLabel_ = new QLabel(QStringLiteral("…–Œ¥º”‘ÿ ˝æ›"), toolbar);
-    statusLabel_->setStyleSheet(QStringLiteral("color:#d0d0d0;"));
-    toolbarLayout->addWidget(statusLabel_);
-
-    rootLayout->addWidget(toolbar);
-
-    // ---- Àƒ ”Õº«¯”Ú£∫2x2 Õ¯∏Ò ----
+    // ---- ÂõõËßÜÂõæÂå∫ÂüüÔºö2x2 ÁΩëÊ†º ----
     auto* viewsFrame = new QFrame(this);
     viewsFrame->setObjectName(QStringLiteral("performanceViews"));
     viewsFrame->setStyleSheet(QStringLiteral(
@@ -81,13 +44,13 @@ void PerformancePage::buildUi()
     grid->setVerticalSpacing(8);
 
 #if USE_VTK
-    //  π”√ QVTKOpenGLNativeWidget ◊˜Œ™’Ê µµƒ‰÷»æ»›∆˜°£
+    // ‰ΩøÁî® QVTKOpenGLNativeWidget ‰Ωú‰∏∫ÁúüÂÆûÁöÑÊ∏≤ÊüìÂÆπÂô®„ÄÇ
     viewAxial_ = new QVTKOpenGLNativeWidget(viewsFrame);
     viewSagittal_ = new QVTKOpenGLNativeWidget(viewsFrame);
     viewCoronal_ = new QVTKOpenGLNativeWidget(viewsFrame);
     viewVolume_ = new QVTKOpenGLNativeWidget(viewsFrame);
 #else
-    // »ÙŒ¥∆Ù”√ VTK£¨ π”√’ºŒªøÿº˛Ã·–—”√ªß°£
+    // Ëã•Êú™ÂêØÁî® VTKÔºå‰ΩøÁî®Âç†‰ΩçÊéß‰ª∂ÊèêÈÜíÁî®Êà∑„ÄÇ
     auto makePlaceholder = [viewsFrame](const QString& text) {
         auto* holder = new QWidget(viewsFrame);
         holder->setStyleSheet(QStringLiteral("background:#161616; border:1px dashed #444;"));
@@ -100,10 +63,10 @@ void PerformancePage::buildUi()
         layout->addStretch();
         return holder;
         };
-    viewAxial_ = makePlaceholder(QStringLiteral("–Ë“™∆Ù”√ VTK ≤≈ƒ‹œ‘ æ÷·◊¥√Ê"));
-    viewSagittal_ = makePlaceholder(QStringLiteral("–Ë“™∆Ù”√ VTK ≤≈ƒ‹œ‘ æ ∏◊¥√Ê"));
-    viewCoronal_ = makePlaceholder(QStringLiteral("–Ë“™∆Ù”√ VTK ≤≈ƒ‹œ‘ æπ⁄◊¥√Ê"));
-    viewVolume_ = makePlaceholder(QStringLiteral("–Ë“™∆Ù”√ VTK ≤≈ƒ‹œ‘ æÃÂ‰÷»æ"));
+    viewAxial_ = makePlaceholder(QStringLiteral("ÈúÄË¶ÅÂêØÁî® VTK ÊâçËÉΩÊòæÁ§∫ËΩ¥Áä∂Èù¢"));
+    viewSagittal_ = makePlaceholder(QStringLiteral("ÈúÄË¶ÅÂêØÁî® VTK ÊâçËÉΩÊòæÁ§∫Áü¢Áä∂Èù¢"));
+    viewCoronal_ = makePlaceholder(QStringLiteral("ÈúÄË¶ÅÂêØÁî® VTK ÊâçËÉΩÊòæÁ§∫ÂÜ†Áä∂Èù¢"));
+    viewVolume_ = makePlaceholder(QStringLiteral("ÈúÄË¶ÅÂêØÁî® VTK ÊâçËÉΩÊòæÁ§∫‰ΩìÊ∏≤Êüì"));
 #endif
 
     grid->addWidget(viewAxial_, 0, 0);
@@ -113,87 +76,3 @@ void PerformancePage::buildUi()
 
     rootLayout->addWidget(viewsFrame, 1);
 }
-
-void PerformancePage::wireSignals()
-{
-    // ‰Ø¿¿∞¥≈•£∫µØ≥ˆƒø¬º—°‘Ò∂‘ª∞øÚ°£
-    connect(btnBrowse_, &QPushButton::clicked, this, [this]() {
-        const QString directory = QFileDialog::getExistingDirectory(this, QStringLiteral("—°‘Ò DICOMŒƒº˛ ƒø¬º"));
-        if (!directory.isEmpty()) {
-            inputDirectory_->setText(directory);
-        }
-        });
-
-    // º”‘ÿ∞¥≈•£∫∏˘æ› ‰»ÎøÚƒ⁄»›≥¢ ‘‘ÿ»Î°£
-    connect(btnLoad_, &QPushButton::clicked, this, [this]() {
-        loadDicomDirectory(inputDirectory_->text().trimmed());
-        });
-
-    // ªÿ≥µ¥•∑¢º”‘ÿ£¨∑Ω±„º¸≈Ã≤Ÿ◊˜°£
-    connect(inputDirectory_, &QLineEdit::returnPressed, this, [this]() {
-        loadDicomDirectory(inputDirectory_->text().trimmed());
-        });
-}
-
-void PerformancePage::updateStatusLabel(const QString& text, bool isError)
-{
-    if (!statusLabel_) {
-        return;
-    }
-
-    statusLabel_->setText(text);
-    statusLabel_->setStyleSheet(isError ? QStringLiteral("color:#ff6464;") : QStringLiteral("color:#8ae66a;"));
-}
-
-void PerformancePage::loadDicomDirectory(const QString& directory)
-{
-    if (directory.isEmpty()) {
-        updateStatusLabel(QStringLiteral("ƒø¬ºŒ™ø’£¨«Îœ»—°‘Ò DICOM  ˝æ›°£"), true);
-        return;
-    }
-
-    if (!mprService_) {
-        updateStatusLabel(QStringLiteral("∫Û∂À∑˛ŒÒ…–Œ¥≥ı ºªØ°£"), true);
-        return;
-    }
-
-    QString error;
-    if (!mprService_->loadSeries(directory, &error)) {
-        updateStatusLabel(error.isEmpty() ? QStringLiteral("º”‘ÿ ß∞‹£¨«ÎºÏ≤Èƒø¬º°£") : error, true);
-        return;
-    }
-
-#if USE_VTK
-    initializeVtkViews();
-#else
-    updateStatusLabel(QStringLiteral("µ±«∞ππΩ®Œ¥∆Ù”√ VTK£¨Œﬁ∑®‰÷»æ ”Õº°£"), true);
-#endif
-}
-
-#if USE_VTK
-void PerformancePage::initializeVtkViews()
-{
-    if (!viewAxial_ || !viewSagittal_ || !viewCoronal_ || !viewVolume_) {
-        updateStatusLabel(QStringLiteral(" ”Õºøÿº˛Œ¥’˝»∑¥¥Ω®°£"), true);
-        return;
-    }
-
-    if (!mprService_) {
-        updateStatusLabel(QStringLiteral("∫Û∂À∑˛ŒÒŒ™ø’£¨Œﬁ∑®≥ı ºªØ°£"), true);
-        return;
-    }
-
-    const bool success = mprService_->initializeViewers(
-        viewAxial_->renderWindow(), viewAxial_->interactor(),
-        viewSagittal_->renderWindow(), viewSagittal_->interactor(),
-        viewCoronal_->renderWindow(), viewCoronal_->interactor(),
-        viewVolume_->renderWindow(), viewVolume_->interactor());
-
-    if (success) {
-        updateStatusLabel(QStringLiteral("DICOM  ˝æ›º”‘ÿ≥…π¶°£"), false);
-    }
-    else {
-        updateStatusLabel(QStringLiteral("VTK  ”Õº≥ı ºªØ ß∞‹£¨«ÎºÏ≤È»’÷æ°£"), true);
-    }
-}
-#endif
