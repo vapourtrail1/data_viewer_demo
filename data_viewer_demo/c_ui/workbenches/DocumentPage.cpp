@@ -473,4 +473,12 @@ void DocumentPage::loadDicomDirectory(const QString& directory)
     }
 
     updateDicomStatusLabel(QStringLiteral("DICOM 数据加载成功"), false);
+
+    // 将成功加载的服务通知给外部，让三视图和 3D 视图立即刷新。
+    emit dicomLoaded(mprService_.get());
+
+    // 关闭模态框，避免挡住后续的可视化视图。
+    if (dicomDialog_) {
+        dicomDialog_->accept();
+    }
 }

@@ -26,6 +26,7 @@ signals:
     void requestSwitchTo(const QString& page);
     void moduleClicked(const QString& info);
     void recentOpenRequested(const QString& projectName);
+    void dicomLoaded(core::services::OrthogonalMprService* service);
 
 private:
     void buildUi();
