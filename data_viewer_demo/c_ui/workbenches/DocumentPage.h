@@ -9,6 +9,7 @@
 #include <QDebug>
 #include <memory>
 
+class QDialog;
 class QVBoxLayout;
 
 namespace core::services {
@@ -32,7 +33,7 @@ private:
     QWidget* buildRightContent(QWidget* parent);
     void wireLeftDockSignals();
     void wireRightContentSignals();
-    void buildOpenDicomToolbar(QVBoxLayout* layout);
+    void showOpenDicomDialog();
     void updateDicomStatusLabel(const QString& text, bool isError);
     void loadDicomDirectory(const QString& directory);
 
@@ -43,11 +44,13 @@ private:
     QPointer<QPushButton> btnPorosity_;
     QPointer<QPushButton> btnMetrology_;
     QPointer<QPushButton> btnMaterial_;
+    QPointer<QPushButton> btnDicomEntry_;
     QPointer<QTableWidget> tableRecent_;
     QPointer<QLineEdit> inputDicomDirectory_;
     QPointer<QPushButton> btnDicomBrowse_;
     QPointer<QPushButton> btnDicomLoad_;
     QPointer<QLabel> dicomStatusLabel_;
+    QPointer<QDialog> dicomDialog_;
 
     std::unique_ptr<core::services::OrthogonalMprService> mprService_;
 };
