@@ -12,6 +12,7 @@
 #include <QTableWidgetItem>
 #include <QListWidget>
 #include <QListWidgetItem>
+#include <QDialog>
 
 #include "core/services/OrthogonalMprService.h"
 
@@ -210,8 +211,24 @@ QWidget* DocumentPage::buildRightContent(QWidget* parent)
     moduleLayout->addLayout(grid);
     vl->addWidget(moduleFrame);
 
-    // DICOM 打开入口：移动自 PerformancePage 中的工具条逻辑
-    buildOpenDicomToolbar(vl);
+    // DICOM 打开入口：点击后弹出模态框，不再把工具条固定在欢迎页上。
+    auto dicomEntryFrame = new QFrame(right);
+    dicomEntryFrame->setObjectName(QStringLiteral("dicomEntryFrame"));
+    dicomEntryFrame->setStyleSheet(QStringLiteral(
+        "QFrame#dicomEntryFrame{background:#2e2e2e; border-radius:8px;}"
+        "QFrame#dicomEntryFrame QPushButton{background:#4d6fff; color:#fff; border:none; border-radius:6px; padding:10px 16px;}"
+        "QFrame#dicomEntryFrame QPushButton:hover{background:#758dff;}"
+        "QFrame#dicomEntryFrame QLabel{color:#f5f5f5;}"));
+    auto dicomEntryLayout = new QHBoxLayout(dicomEntryFrame);
+    dicomEntryLayout->setContentsMargins(16, 12, 16, 12);
+    dicomEntryLayout->setSpacing(10);
+    auto dicomLabel = new QLabel(QStringLiteral("需要加载 DICOM 数据？点击下方按钮后在弹出的模态框中选择文件夹。"), dicomEntryFrame);
+    dicomLabel->setWordWrap(true);
+    dicomEntryLayout->addWidget(dicomLabel, 1);
+    btnDicomEntry_ = new QPushButton(QStringLiteral("打开 DICOM..."), dicomEntryFrame);
+    btnDicomEntry_->setCursor(Qt::PointingHandCursor);
+    dicomEntryLayout->addWidget(btnDicomEntry_, 0, Qt::AlignRight);
+    vl->addWidget(dicomEntryFrame);
 
     // 最近项目
     auto recentFrame = new QFrame(right);
@@ -277,11 +294,9 @@ void DocumentPage::wireLeftDockSignals()
             const QString t = it ? it->text() : QString();
 
             if (t == QStringLiteral("打开")) {
-                // 点选“打开”时突出当前 DICOM 工具条的输入框，便于用户直接操作
+                // 点击“打开”时弹出 DICOM 选择模态框，行为与性能页保持一致
                 emit moduleClicked(QStringLiteral("选择：%1").arg(t));
-                if (inputDicomDirectory_) {
-                    inputDicomDirectory_->setFocus();
-                }
+                showOpenDicomDialog();
             }
             else if (t == QStringLiteral("CT重建")
                 || t == QStringLiteral("快速导入")
@@ -326,6 +341,11 @@ void DocumentPage::wireRightContentSignals()
         goReconstruct();
         });
 
+    // 欢迎页上的入口按钮：打开 DICOM 模态框。
+    connect(btnDicomEntry_, &QPushButton::clicked, this, [this] {
+        showOpenDicomDialog();
+        });
+
     connect(tableRecent_, &QTableWidget::itemDoubleClicked, this,
         [this, goReconstruct](auto* item) {
             const QString txt = item ? item->text() : QStringLiteral("项目");
@@ -341,58 +361,75 @@ void DocumentPage::wireRightContentSignals()
         emit moduleClicked(QStringLiteral("保持当前更改"));
         });
 
-    // DICOM 打开相关信号：保持与原 PerformancePage 的行为一致
-    connect(btnDicomBrowse_, &QPushButton::clicked, this, [this]() {
-        const QString directory = QFileDialog::getExistingDirectory(this, QStringLiteral("选择 DICOM 序列所在目录"));
-        if (!directory.isEmpty()) {
-            inputDicomDirectory_->setText(directory);
-        }
-        });
-
-    connect(btnDicomLoad_, &QPushButton::clicked, this, [this]() {
-        loadDicomDirectory(inputDicomDirectory_->text().trimmed());
-        });
-
-    connect(inputDicomDirectory_, &QLineEdit::returnPressed, this, [this]() {
-        loadDicomDirectory(inputDicomDirectory_->text().trimmed());
-        });
 }
 
-// 构建 DICOM 打开工具条，将原先 PerformancePage 的 UI 移动到欢迎页中
-void DocumentPage::buildOpenDicomToolbar(QVBoxLayout* layout)
+// 弹出 DICOM 选择模态框，重用性能页的打开逻辑。
+void DocumentPage::showOpenDicomDialog()
 {
-    if (!layout) {
-        return;
+    // 仅在首次调用时构建 UI，保持简单的复用。
+    if (!dicomDialog_) {
+        dicomDialog_ = new QDialog(this);
+        dicomDialog_->setModal(true);
+        dicomDialog_->setWindowTitle(QStringLiteral("打开 DICOM 数据"));
+
+        auto* dialogLayout = new QVBoxLayout(dicomDialog_);
+        dialogLayout->setContentsMargins(14, 14, 14, 14);
+        dialogLayout->setSpacing(12);
+
+        // 顶部提示文案，提醒用户需要选择目录。
+        auto* introLabel = new QLabel(QStringLiteral("请选择包含 DICOM 序列的文件夹，然后点击“加载”。"), dicomDialog_);
+        introLabel->setWordWrap(true);
+        dialogLayout->addWidget(introLabel);
+
+        // 输入与按钮区域。
+        auto* inputRow = new QHBoxLayout();
+        inputRow->setSpacing(8);
+        auto* dirLabel = new QLabel(QStringLiteral("目录:"), dicomDialog_);
+        inputRow->addWidget(dirLabel);
+
+        inputDicomDirectory_ = new QLineEdit(dicomDialog_);
+        inputDicomDirectory_->setPlaceholderText(QStringLiteral("选择或输入 DICOM 序列所在目录"));
+        inputRow->addWidget(inputDicomDirectory_, 1);
+
+        btnDicomBrowse_ = new QPushButton(QStringLiteral("浏览..."), dicomDialog_);
+        inputRow->addWidget(btnDicomBrowse_);
+
+        dialogLayout->addLayout(inputRow);
+
+        // 状态与动作行。
+        auto* actionRow = new QHBoxLayout();
+        actionRow->setSpacing(8);
+        dicomStatusLabel_ = new QLabel(QStringLiteral("尚未加载数据"), dicomDialog_);
+        dicomStatusLabel_->setStyleSheet(QStringLiteral("color:#d0d0d0;"));
+        actionRow->addWidget(dicomStatusLabel_, 1);
+
+        btnDicomLoad_ = new QPushButton(QStringLiteral("加载"), dicomDialog_);
+        btnDicomLoad_->setDefault(true);
+        actionRow->addWidget(btnDicomLoad_);
+        dialogLayout->addLayout(actionRow);
+
+        // 按钮行为：保持与性能页一致，增加注释说明。
+        connect(btnDicomBrowse_, &QPushButton::clicked, this, [this]() {
+            const QString directory = QFileDialog::getExistingDirectory(this, QStringLiteral("选择 DICOM 序列所在目录"));
+            if (!directory.isEmpty()) {
+                inputDicomDirectory_->setText(directory);
+            }
+            });
+
+        connect(btnDicomLoad_, &QPushButton::clicked, this, [this]() {
+            loadDicomDirectory(inputDicomDirectory_->text().trimmed());
+            });
+
+        connect(inputDicomDirectory_, &QLineEdit::returnPressed, this, [this]() {
+            loadDicomDirectory(inputDicomDirectory_->text().trimmed());
+            });
     }
 
-    // 工具条外框
-    auto* toolbar = new QFrame(this);
-    toolbar->setObjectName(QStringLiteral("performanceToolbar"));
-    toolbar->setStyleSheet(QStringLiteral(
-        "QFrame#performanceToolbar{background-color:#242424; border-radius:6px;}"));
-
-    auto* toolbarLayout = new QHBoxLayout(toolbar);
-    toolbarLayout->setContentsMargins(12, 10, 12, 10);
-    toolbarLayout->setSpacing(10);
-
-    auto* directoryLabel = new QLabel(QStringLiteral("DICOM目录:"), toolbar);
-    toolbarLayout->addWidget(directoryLabel);
-
-    inputDicomDirectory_ = new QLineEdit(toolbar);
-    inputDicomDirectory_->setPlaceholderText(QStringLiteral("选择或输入 DICOM 序列所在目录"));
-    toolbarLayout->addWidget(inputDicomDirectory_, 1);
-
-    btnDicomBrowse_ = new QPushButton(QStringLiteral("浏览..."), toolbar);
-    toolbarLayout->addWidget(btnDicomBrowse_);
-
-    btnDicomLoad_ = new QPushButton(QStringLiteral("加载"), toolbar);
-    toolbarLayout->addWidget(btnDicomLoad_);
-
-    dicomStatusLabel_ = new QLabel(QStringLiteral("尚未加载数据"), toolbar);
-    dicomStatusLabel_->setStyleSheet(QStringLiteral("color:#d0d0d0;"));
-    toolbarLayout->addWidget(dicomStatusLabel_);
-
-    layout->addWidget(toolbar);
+    // 每次展示前重置状态文案，避免旧状态误导用户。
+    updateDicomStatusLabel(QStringLiteral("尚未加载数据"), false);
+    dicomDialog_->show();
+    dicomDialog_->raise();
+    dicomDialog_->activateWindow();
 }
 
 // 统一更新 DICOM 状态提示，带上错误标记
@@ -403,7 +440,17 @@ void DocumentPage::updateDicomStatusLabel(const QString& text, bool isError)
     }
 
     dicomStatusLabel_->setText(text);
-    dicomStatusLabel_->setStyleSheet(isError ? QStringLiteral("color:#ff6464;") : QStringLiteral("color:#8ae66a;"));
+
+    // 根据状态选择颜色：错误为红色，成功为绿色，其余保持中性灰色。
+    if (isError) {
+        dicomStatusLabel_->setStyleSheet(QStringLiteral("color:#ff6464;"));
+    }
+    else if (text.contains(QStringLiteral("成功"))) {
+        dicomStatusLabel_->setStyleSheet(QStringLiteral("color:#8ae66a;"));
+    }
+    else {
+        dicomStatusLabel_->setStyleSheet(QStringLiteral("color:#d0d0d0;"));
+    }
 }
 
 // 实际加载 DICOM 目录并反馈状态
