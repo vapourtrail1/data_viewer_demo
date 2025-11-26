@@ -3,7 +3,9 @@
 #include "c_ui/workbenches/StartPage.h"
 #include "c_ui/workbenches/EditPage.h"
 #include "c_ui/workbenches/VolumePage.h"
+#include "c_ui/workbenches/ReconstructPage.h"
 #include "c_ui/workbenches/SelectPage.h"
+#include "core/services/OrthogonalMprService.h"
 #include "c_ui/workbenches/AlignmentPage.h"
 #include "c_ui/workbenches/GeometryPage.h"
 #include "c_ui/workbenches/MeasurePage.h"
@@ -243,8 +245,9 @@ void CTViewer::buildTitleBar()
             statusBar()->showMessage(QStringLiteral("已切换到“编辑”功能区"), 3000);
             return;
         }
-        else if (index == 3 && pageVolume_) {
-            stack_->setCurrentWidget(pageVolume_);
+        else if (index == 3 && (pageReconstruct_ || pageVolume_)) {
+            // 优先切换到三视图/3D 视图页，若未准备好则退回原体积页。
+            stack_->setCurrentWidget(pageReconstruct_ ? static_cast<QWidget*>(pageReconstruct_) : static_cast<QWidget*>(pageVolume_));
             statusBar()->showMessage(QStringLiteral("已切换到“体积”功能区"), 3000);
             return;
         }
@@ -388,6 +391,8 @@ void CTViewer::buildCentral()
     stack_->addWidget(pageEdit_);
     pageVolume_ = new VolumePage(stack_);
     stack_->addWidget(pageVolume_);
+    pageReconstruct_ = new ReconstructPage(stack_);
+    stack_->addWidget(pageReconstruct_);
     pageSelect_ = new SelectPage(stack_);
     stack_->addWidget(pageSelect_);
     /*stack_->setCurrentWidget(pageDocument_);*/
@@ -419,9 +424,33 @@ void CTViewer::buildCentral()
     connect(pageDocument_, &DocumentPage::requestSwitchTo, this, [this](const QString& key) {
         statusBar()->showMessage(QStringLiteral("请求切换到页面：%1").arg(key), 1500);
         // 未来：可在此根据 key 切换其他工作台
+        if (key == QStringLiteral("reconstruct") && pageReconstruct_ && stack_ && ribbontabBar_) {
+            stack_->setCurrentWidget(pageReconstruct_);
+            ribbontabBar_->setCurrentIndex(3);
+        }
         });
     connect(pageDocument_, &DocumentPage::recentOpenRequested, this, [this](const QString& name) {
         statusBar()->showMessage(QStringLiteral("正在打开 %1 ...").arg(name), 1500);
+        });
+
+    connect(pageDocument_, &DocumentPage::dicomLoaded, this, [this](core::services::OrthogonalMprService* service) {
+        // 若成功加载 DICOM，则初始化并展示三视图 + 3D 视图。
+        if (pageReconstruct_ && service) {
+            const bool ok = pageReconstruct_->initializeWithService(service);
+            if (ok) {
+                stack_->setCurrentWidget(pageReconstruct_);
+                if (ribbontabBar_) {
+                    ribbontabBar_->setCurrentIndex(3);
+                }
+                statusBar()->showMessage(QStringLiteral("DICOM 已加载，三视图/3D 视图已就绪。"), 3000);
+                return;
+            }
+
+            statusBar()->showMessage(QStringLiteral("数据已加载，但初始化视口失败，请检查 VTK 环境。"), 4000);
+        }
+        else {
+            statusBar()->showMessage(QStringLiteral("收到加载完成信号，但页面尚未准备好。"), 3000);
+        }
         });
 }
 
