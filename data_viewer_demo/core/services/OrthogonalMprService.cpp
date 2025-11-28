@@ -33,9 +33,7 @@ namespace core::services {
 		std::unique_ptr<core::render::RenderService>   render;//这个参数负责应用渲染相关的设置，比如窗口宽度/水平和预设
 		std::unique_ptr<VolumeService>                 volume;//这个参数负责加载和管理体数据，比如 DICOM 系列
 		bool hasData = false;                                 //标记当前是否有绑定的体数据
-#if USE_VTK
 		vtkImageData* image = nullptr;                        //当前绑定的体数据
-#endif
     };
 
     OrthogonalMprService::OrthogonalMprService()
@@ -56,9 +54,7 @@ namespace core::services {
         QVTKOpenGLNativeWidget* sagittal,
         QVTKOpenGLNativeWidget* volume3D)
     {
-#if USE_VTK
         impl_->assembly->attach(axial, coronal, sagittal, volume3D);
-#endif
     }
 
     bool OrthogonalMprService::loadSeries(const QString& directory, QString* error)
@@ -102,12 +98,10 @@ namespace core::services {
             impl_->hasData = false;
             return false;
         }
-
         //  绑定到当前 MPR 状态
 		impl_->state->bindImage(image);//把参数 image 传给 MprState 对象
         impl_->state->resetToCenter();
         impl_->hasData = true;
-
         if (error) {
             error->clear();  // 告诉上层 没有错误
         }
@@ -173,31 +167,27 @@ namespace core::services {
 
     void OrthogonalMprService::detach()
     {
-#if USE_VTK
         impl_->router->unwire();
         impl_->assembly->detach();
         impl_->hasData = false;
         impl_->image = nullptr;
-#endif
     }
 
     //绑定一份体数据
-#if USE_VTK
+
 	bool OrthogonalMprService::bindImage(vtkImageData* img)
     {
         impl_->image = img;
         impl_->hasData = (img != nullptr);
-
         if (!img) {
             impl_->state->bindImage(nullptr);
             return false;
         }
-
         impl_->state->bindImage(img);
         impl_->state->resetToCenter();
         return true;
     }
-#endif
+
 
     bool OrthogonalMprService::hasData() const
     {
@@ -207,11 +197,9 @@ namespace core::services {
 	// 重置游标到体数据中心
     void OrthogonalMprService::resetCursorToCenter()
     {
-#if USE_VTK
         if (!impl_->hasData) return;
         impl_->state->resetToCenter();
         impl_->assembly->refreshAll();
-#endif
     }
     
 	//这个函数设置三向切片的索引位置
@@ -253,12 +241,11 @@ namespace core::services {
     {
 #if USE_VTK
         if (!impl_->hasData) return;
-        impl_->render->applyPreset(
-            name,
-            impl_->assembly->axialViewer(),
-            impl_->assembly->coronalViewer(),
-            impl_->assembly->sagittalViewer(),
-            impl_->assembly->volumeProperty());
+        impl_->render->applyPreset(name,
+        impl_->assembly->axialViewer(),
+        impl_->assembly->coronalViewer(),
+        impl_->assembly->sagittalViewer(),
+        impl_->assembly->volumeProperty());
         impl_->assembly->refreshAll();
 #else
         Q_UNUSED(name);

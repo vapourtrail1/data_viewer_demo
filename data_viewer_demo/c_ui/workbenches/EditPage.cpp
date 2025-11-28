@@ -120,7 +120,7 @@ EditPage::EditPage(QWidget* parent)
     placeholderLayout->setContentsMargins(0, 0, 0, 0);
     placeholderLayout->setSpacing(1);
 
-    auto* title = new QLabel(QStringLiteral("编辑功能区内容区域"), placeholder);
+    /*auto* title = new QLabel(QStringLiteral("编辑功能区内容区域"), placeholder);
     title->setStyleSheet(QStringLiteral("font-size:16px; font-weight:600;"));
     placeholderLayout->addWidget(title);
 
@@ -128,10 +128,21 @@ EditPage::EditPage(QWidget* parent)
     desc->setWordWrap(true);
     desc->setStyleSheet(QStringLiteral("font-size:13px;"));
     placeholderLayout->addWidget(desc);
-    placeholderLayout->addStretch();
-    layout->addWidget(placeholder, 1);
+    placeholderLayout->addStretch();*/
 
-    
+    /*auto* viewerHost = new QFrame(placeholder);
+    viewerHost->setObjectName(QStringLiteral("viewerHost"));
+    viewerHost->setStyleSheet(QStringLiteral(
+        "QFrame#viewerHost{background:#111; border:1px solid #222; border-radius:6px;}"
+    ));
+
+    auto* hostLayout = new QVBoxLayout(viewerHost);
+    hostLayout->setContentsMargins(0, 0, 0, 0);
+    hostLayout->setSpacing(0);
+
+    placeholderLayout->addWidget(viewerHost, 1);*/
+
+    layout->addWidget(placeholder, 1);
 }
 
 QWidget* EditPage::buildRibbon(QWidget* parent)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <array>
 #include <QString>
 #include <vtkImageData.h>
 #include "core/common/VtkMacros.h"
@@ -8,6 +9,7 @@
 class QVTKOpenGLNativeWidget;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
+
 
 namespace core::mpr {
     class MprAssembly;
@@ -22,11 +24,12 @@ namespace core::render {
 namespace core::services {
 
     /**
-     * 封装三视图 + 3D MPR 的服务层，对外提供简单接口：
+     * 封装三视图 + 3D MPR 的服务层，对外提供接口：
      *  - initializeViewers(...)：绑定 4 个 VTK 窗口 / 交互器
-     *  - bindImage(...)：绑定一份 vtkImageData（目前关注 DICOM）
+	 *  - bindImage(...)：绑定一份 vtkImageData 目前主要传入dicom数据
      *  - setSliceIndex / setWindowLevel / applyPreset 等操作
      */
+    class DistanceMeasureService;
     class OrthogonalMprService
     {
     public:
@@ -71,6 +74,12 @@ namespace core::services {
 
         // 应用预设
         void applyPreset(const QString& name);
+
+        DistanceMeasureService* distanceService() const;
+  
+        //封装一个方便用体素坐标添加测量的接口。内部直接转调 DistanceMeasureService::addDistanceByVoxel。
+   
+        int addDistanceMeasureByVoxel(const std::array<int, 3>& p0Ijk,const std::array<int, 3>& p1Ijk);
 
     private:
         struct Impl;

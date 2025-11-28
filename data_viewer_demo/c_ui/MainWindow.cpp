@@ -462,7 +462,7 @@ void CTViewer::buildCentral()
 
 	//emit dicomLoaded
     connect(pageDocument_, &DocumentPage::dicomLoaded, this, [this](core::services::OrthogonalMprService* service) {
-        // 若成功加载 DICOM，则初始化并展示三视图 + 3D 视图。
+        // 若成功加载 DICOM，则初始化并展示三视图  3D 视图。
         if (mprViews_ && service) {
             const bool ok = mprViews_->initializeWithService(service);//把 4 个 QVTK 视图 和后端的 OrthogonalMprService 绑在一起
             if (ok) {
@@ -482,6 +482,27 @@ void CTViewer::buildCentral()
             statusBar()->showMessage(QStringLiteral("收到加载完成信号，但页面尚未准备好。"), 3000);
         }
         });
+
+    /*connect(pageDocument_, &DocumentPage::dicomLoaded, this, [this](core::services::OrthogonalMprService* service) {
+        if (mprViews_ && service) {
+			const bool ok = mprViews_->initializeWithService(service);
+            if (ok) {
+                if (pageEdit_) {
+                    mountMprViewsToPage(pageEdit_);
+                    stack_->setCurrentWidget(pageEdit_);
+                    if (ribbontabBar_) {
+                        ribbontabBar_->setCurrentIndex(2);
+                    }
+                }
+                statusBar()->showMessage(QStringLiteral("DICOM 已加载，视图已经挂在编辑。"), 3000);
+                return;
+            }
+            statusBar()->showMessage(QStringLiteral("数据已加载，但初始化视口失败，请检查 VTK 环境。"), 4000);
+        }
+        else {
+			statusBar()->showMessage(QStringLiteral("收到加载完成信号，但页面尚未准备好。"), 3000);
+        }
+        });*/
 }
 
 // 空函数
