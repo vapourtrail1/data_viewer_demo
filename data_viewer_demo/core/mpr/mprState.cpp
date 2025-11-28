@@ -31,6 +31,7 @@ namespace core::mpr {
         }
     }
 
+	//这个函数的作用是将 vtkResliceCursor 的中心 绑定到 vtkImageData 体数据的中心 
     void MprState::resetToCenter()
     {
         if (!m_cursor || !m_image) {

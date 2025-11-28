@@ -1,9 +1,7 @@
 #include "core/services/OrthogonalMprService.h"
-
 #include <QLoggingCategory>
 
 #if USE_VTK
-// VTK
 #  include <vtkAutoInit.h>
 #  include <vtkCommand.h>
 #  include <vtkImageData.h>
@@ -20,21 +18,23 @@ VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2);
 #include "core/services/VolumeService.h"
 #include "core/data/volumeModel.h"
 
-
 Q_LOGGING_CATEGORY(lcMprService, "core.mpr.OrthogonalMprService")
+
+/*
+   将数据和渲染管线  和  视图窗口 绑定在一起
+*/
 
 namespace core::services {
 
     struct OrthogonalMprService::Impl {
-        std::unique_ptr<core::mpr::MprState>           state;
-        std::unique_ptr<core::mpr::MprAssembly>        assembly;
-        std::unique_ptr<core::mpr::MprInteractionRouter> router;
-        std::unique_ptr<core::render::RenderService>   render;
-		std::unique_ptr<VolumeService>                 volume;
-        bool hasData = false;
-
+		std::unique_ptr<core::mpr::MprState>           state; //这个参数保存了当前的图像数据和游标状态
+		std::unique_ptr<core::mpr::MprAssembly>        assembly;//这个参数负责管理 MPR 视图的 VTK 管线和渲染窗口
+		std::unique_ptr<core::mpr::MprInteractionRouter> router;//这个参数负责处理用户交互事件，并将其映射到 MPR 状态的更新
+		std::unique_ptr<core::render::RenderService>   render;//这个参数负责应用渲染相关的设置，比如窗口宽度/水平和预设
+		std::unique_ptr<VolumeService>                 volume;//这个参数负责加载和管理体数据，比如 DICOM 系列
+		bool hasData = false;                                 //标记当前是否有绑定的体数据
 #if USE_VTK
-        vtkImageData* image = nullptr; // 不负责删除，由上层管理
+		vtkImageData* image = nullptr;                        //当前绑定的体数据
 #endif
     };
 
@@ -50,6 +50,7 @@ namespace core::services {
 
     OrthogonalMprService::~OrthogonalMprService() = default;
 
+	//这个函数绑定四个 QVTKOpenGLNativeWidget 到 MPR 组件中
     void OrthogonalMprService::attachWidgets(QVTKOpenGLNativeWidget* axial,
         QVTKOpenGLNativeWidget* coronal,
         QVTKOpenGLNativeWidget* sagittal,
@@ -76,8 +77,8 @@ namespace core::services {
             return false;
         }
 
-        // 1. 用 VolumeService 打开 DICOM 目录
-        auto result = impl_->volume->openDicomDir(directory);
+        //  用 VolumeService 打开 DICOM 目录
+		auto result = impl_->volume->openDicomDir(directory);
         if (!result.ok() || !result.value) {
             if (error) {
                 if (!result.message.isEmpty()) {
@@ -91,7 +92,7 @@ namespace core::services {
             return false;
         }
 
-        // 2. 拿到 VolumeModel 里的 vtkImageData
+        //  拿到 VolumeModel 里的 vtkImageData
         const core::data::VolumeModel* volumeModel = result.value;
         vtkImageData* image = volumeModel ? volumeModel->image() : nullptr;
         if (!image) {
@@ -102,8 +103,8 @@ namespace core::services {
             return false;
         }
 
-        // 3. 绑定到当前 MPR 状态
-        impl_->state->bindImage(image);
+        //  绑定到当前 MPR 状态
+		impl_->state->bindImage(image);//把参数 image 传给 MprState 对象
         impl_->state->resetToCenter();
         impl_->hasData = true;
 
@@ -114,6 +115,8 @@ namespace core::services {
 #endif
     }
 
+	//这个函数绑定四个 VTK 窗口和交互器 到 MPR 组件中
+	//service是传入的参数，service里保存的是已经加载好的vtkImageData和MPR管线对象
     bool OrthogonalMprService::initializeViewers(
         vtkRenderWindow* axialWindow, vtkRenderWindowInteractor* axialInteractor,
         vtkRenderWindow* sagittalWindow, vtkRenderWindowInteractor* sagittalInteractor,
@@ -127,7 +130,9 @@ namespace core::services {
         Q_UNUSED(volumeWindow); Q_UNUSED(volumeInteractor);
         return false;
 #else
-        if (!impl_->hasData)   return false;
+        if (!impl_->hasData) {
+            return false;
+        }
         
         // 先断开旧的交互路由
         impl_->router->unwire();
@@ -146,26 +151,22 @@ namespace core::services {
         //样式
         if (impl_->render) {
             impl_->render->syncWLTo2D(
-                impl_->assembly->axialViewer(),
-                impl_->assembly->coronalViewer(),
-                impl_->assembly->sagittalViewer());
-                
+            impl_->assembly->axialViewer(),
+            impl_->assembly->coronalViewer(),
+            impl_->assembly->sagittalViewer());
 			impl_->render->applyPreset(QStringLiteral("SoftTissue"),
-                impl_->assembly->axialViewer(),
-                impl_->assembly->coronalViewer(),
-                impl_->assembly->sagittalViewer(),
-				impl_->assembly->volumeProperty());
-
+            impl_->assembly->axialViewer(),
+            impl_->assembly->coronalViewer(),
+            impl_->assembly->sagittalViewer(),
+        	impl_->assembly->volumeProperty());
 			impl_->assembly->refreshAll();
         }
 
-        // 构建 3D 三平面
-        
+        // 构建3D三平面
         if (impl_->router)
         {
            impl_->router->wire();
         }
-            
         return true;
 #endif
     }
@@ -180,8 +181,9 @@ namespace core::services {
 #endif
     }
 
+    //绑定一份体数据
 #if USE_VTK
-    bool OrthogonalMprService::bindImage(vtkImageData* img)
+	bool OrthogonalMprService::bindImage(vtkImageData* img)
     {
         impl_->image = img;
         impl_->hasData = (img != nullptr);
@@ -202,6 +204,7 @@ namespace core::services {
         return impl_->hasData;
     }
 
+	// 重置游标到体数据中心
     void OrthogonalMprService::resetCursorToCenter()
     {
 #if USE_VTK
@@ -210,7 +213,8 @@ namespace core::services {
         impl_->assembly->refreshAll();
 #endif
     }
-
+    
+	//这个函数设置三向切片的索引位置
     void OrthogonalMprService::setSliceIndex(int axial, int coronal, int sagittal)
     {
 #if USE_VTK
@@ -223,23 +227,28 @@ namespace core::services {
 #endif
     }
 
+	//这个函数设置窗宽窗位
     void OrthogonalMprService::setWindowLevel(double window, double level, bool allViews)
     {
 #if USE_VTK
-        if (!impl_->hasData) return;
+        if (!impl_->hasData) {
+            return;
+        }
+
         Q_UNUSED(allViews);
 
         impl_->render->setWL(window, level);
         impl_->render->syncWLTo2D(
-            impl_->assembly->axialViewer(),
-            impl_->assembly->coronalViewer(),
-            impl_->assembly->sagittalViewer());
+        impl_->assembly->axialViewer(),
+        impl_->assembly->coronalViewer(),
+        impl_->assembly->sagittalViewer());
         impl_->assembly->refreshAll();
 #else
         Q_UNUSED(window); Q_UNUSED(level); Q_UNUSED(allViews);
 #endif
     }
-
+    
+	//应用预设
     void OrthogonalMprService::applyPreset(const QString& name)
     {
 #if USE_VTK
@@ -255,5 +264,4 @@ namespace core::services {
         Q_UNUSED(name);
 #endif
     }
-
 } // namespace core::services

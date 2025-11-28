@@ -107,7 +107,7 @@ namespace core::mpr {
         // 状态（图像 + Reslice Cursor） 
         MprState* m_state = nullptr;
 
-        // 成员：Qt Widget 
+        // 成员是Qt的组件
         QVTKOpenGLNativeWidget* m_axialWidget = nullptr;
         QVTKOpenGLNativeWidget* m_coronalWidget = nullptr;
         QVTKOpenGLNativeWidget* m_sagittalWidget = nullptr;

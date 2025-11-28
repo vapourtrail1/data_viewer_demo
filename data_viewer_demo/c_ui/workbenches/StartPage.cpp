@@ -87,7 +87,6 @@ static QIcon loadIconFor(const QString& text) {
             }
         }
     }
-
     return QIcon(":/icons/icons/move.png");
 }
 
@@ -121,15 +120,29 @@ StartPagePage::StartPagePage(QWidget* parent)
     placeholderLayout->setContentsMargins(0, 0, 0, 0);
     placeholderLayout->setSpacing(1);
 
-    auto* title = new QLabel(QStringLiteral("开始功能区内容区域"), placeholder);
+    /*auto* title = new QLabel(QStringLiteral("开始功能区内容区域"), placeholder);
     title->setStyleSheet(QStringLiteral("font-size:16px; font-weight:600;"));
     placeholderLayout->addWidget(title);
 
     auto* desc = new QLabel(QStringLiteral("这里可以继续扩展体积编辑、几何调整等操作界面。"), placeholder);
     desc->setWordWrap(true);
     desc->setStyleSheet(QStringLiteral("font-size:13px;"));
-    placeholderLayout->addWidget(desc);
-    placeholderLayout->addStretch();
+    placeholderLayout->addWidget(desc);*/
+
+    // 用于挂载 2x2 视口的容器
+    auto* viewerHost = new QFrame(placeholder);
+    viewerHost->setObjectName(QStringLiteral("viewerHost"));
+    viewerHost->setStyleSheet(QStringLiteral(
+        "QFrame#viewerHost{background:#111; border:1px solid #222; border-radius:6px;}"
+    ));
+
+    auto* hostLayout = new QVBoxLayout(viewerHost);
+    hostLayout->setContentsMargins(0, 0, 0, 0);
+    hostLayout->setSpacing(0);
+
+    placeholderLayout->addWidget(viewerHost, 1);
+    
+	// 占位区填充到主布局中
     layout01->addWidget(placeholder, 1);
 }
 

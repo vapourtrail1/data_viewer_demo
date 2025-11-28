@@ -11,10 +11,14 @@
 #include <QTableWidgetItem>
 #include <QListWidget>
 #include <QListWidgetItem>
+#include <QFileDialog>
+#include <QDialog>
+#include "core/services/OrthogonalMprService.h"
 
 
 DocumentPage::DocumentPage(QWidget* parent)
     : QWidget(parent)
+    , mprService_(std::make_unique<core::services::OrthogonalMprService>())
 {
     buildUi();
     wireLeftDockSignals();
@@ -37,7 +41,7 @@ void DocumentPage::buildUi()
 
     // 左侧Dock区
     buildLeftDock();
-    hl->addWidget(listNav_, 0); // 固定宽度在 buildLeftDock 中设置
+	hl->addWidget(listNav_, 0); //第二个参数的意思是伸缩比例，0表示不伸缩
 
     // 右侧主内容
     auto right = buildRightContent(this);
@@ -49,7 +53,7 @@ void DocumentPage::buildUi()
  */
 void DocumentPage::buildLeftDock()
 {
-    listNav_ = new QListWidget(this);
+	listNav_ = new QListWidget(this);//listNav_代表的是左侧的导航列表
     listNav_->setMinimumWidth(180);
     listNav_->setStyleSheet(R"(
         QListWidget { background:#181818; color:#ddd; border:none; }
@@ -59,8 +63,8 @@ void DocumentPage::buildLeftDock()
 
     // 工具函数:分割线
     auto addSeparator = [this]() {
-        auto sep = new QListWidgetItem();
-        sep->setFlags(Qt::NoItemFlags);
+        auto sep = new QListWidgetItem();//占位
+        sep->setFlags(Qt::NoItemFlags);//这个项只能用来占位或展示，不允许用户交互
         sep->setSizeHint(QSize(180, 10));
         listNav_->addItem(sep);
 
@@ -68,12 +72,13 @@ void DocumentPage::buildLeftDock()
         line->setFrameShape(QFrame::HLine);
         line->setStyleSheet("background:#444; margin:4px 12px;");
         listNav_->setItemWidget(sep, line);
-        };
+    };
+
     auto addItem = [this](const QString& text) {
         auto item = new QListWidgetItem(text);
         item->setSizeHint(QSize(180, 30));
         listNav_->addItem(item);
-        };
+    };
 
     //Dock的内容
     addItem(QStringLiteral("欢迎使用"));
@@ -206,6 +211,25 @@ QWidget* DocumentPage::buildRightContent(QWidget* parent)
     moduleLayout->addLayout(grid);
     vl->addWidget(moduleFrame);
 
+    //点击“打开”打开模态框
+   /* auto dicomEntryFrame = new QFrame(right);
+    dicomEntryFrame->setObjectName(QStringLiteral("dicomEntryFrame"));
+    dicomEntryFrame->setStyleSheet(QStringLiteral(
+        "QFrame#dicomEntryFrame{background:#2e2e2e; border-radius:8px;}"
+        "QFrame#dicomEntryFrame QPushButton{background:#4d6fff; color:#fff; border:none; border-radius:6px; padding:10px 16px;}"
+        "QFrame#dicomEntryFrame QPushButton:hover{background:#758dff;}"
+        "QFrame#dicomEntryFrame QLabel{color:#f5f5f5;}"));
+    auto dicomEntryLayout = new QHBoxLayout(dicomEntryFrame);
+    dicomEntryLayout->setContentsMargins(16, 12, 16, 12);
+    dicomEntryLayout->setSpacing(10);
+    auto dicomLabel = new QLabel(QStringLiteral("需要加载 DICOM 数据？点击下方按钮后在弹出的模态框中选择文件夹。"), dicomEntryFrame);
+    dicomLabel->setWordWrap(true);
+    dicomEntryLayout->addWidget(dicomLabel, 1);
+    btnDicomEntry_ = new QPushButton(QStringLiteral("打开 DICOM..."), dicomEntryFrame);
+    btnDicomEntry_->setCursor(Qt::PointingHandCursor);
+    dicomEntryLayout->addWidget(btnDicomEntry_, 0, Qt::AlignRight);
+    vl->addWidget(dicomEntryFrame);*/
+
     // 最近项目
     auto recentFrame = new QFrame(right);
     recentFrame->setObjectName(QStringLiteral("recentFrame"));
@@ -259,17 +283,23 @@ QWidget* DocumentPage::buildRightContent(QWidget* parent)
 }
 
 /*
- * 连接左侧导航点击逻辑（这里只做演示：发出切页或退出等信号）
+ * 连接左侧导航点击逻辑
  */
 void DocumentPage::wireLeftDockSignals()
 {
-    if (!listNav_) return;
+    if (!listNav_)
+    {
+        return;
+    }
 
     connect(listNav_, &QListWidget::itemClicked, this,
         [this](QListWidgetItem* it) {
             const QString t = it ? it->text() : QString();
-
-            if (t == QStringLiteral("CT重建")
+            if (t == QStringLiteral("打开")){
+                emit moduleClicked(QStringLiteral("选择：%1").arg(t));
+                showOpenDicomDialog();
+            }
+            else if (t == QStringLiteral("CT重建")
                 || t == QStringLiteral("快速导入")
                 || t == QStringLiteral("导入")
                 || t == QStringLiteral("导出")) {
@@ -278,11 +308,11 @@ void DocumentPage::wireLeftDockSignals()
                 emit moduleClicked(QStringLiteral("正在进入：%1").arg(t));
             }
             else if (t == QStringLiteral("退出")) {
-                // 这里只能发个意图；真正 close() 由 MainWindow 来做
+                // 这里只能发个意图
                 emit moduleClicked(QStringLiteral("准备退出"));
             }
             else {
-                // 其他项：仅做提示
+                // 其他项
                 emit moduleClicked(QStringLiteral("选择：%1").arg(t));
             }
         });
@@ -312,6 +342,10 @@ void DocumentPage::wireRightContentSignals()
         goReconstruct();
         });
 
+    connect(btnDicomEntry_, &QPushButton::clicked, this, [this] {
+        showOpenDicomDialog();
+        });
+
     connect(tableRecent_, &QTableWidget::itemDoubleClicked, this,
         [this, goReconstruct](auto* item) {
             const QString txt = item ? item->text() : QStringLiteral("项目");
@@ -319,11 +353,133 @@ void DocumentPage::wireRightContentSignals()
             goReconstruct();
         });
 
-    // 撤回/保持：这里只提示一下
+    // 撤回/保持
     connect(btnUndo_, &QPushButton::clicked, this, [this] {
         emit moduleClicked(QStringLiteral("已执行撤回操作"));
         });
     connect(btnKeep_, &QPushButton::clicked, this, [this] {
         emit moduleClicked(QStringLiteral("保持当前更改"));
         });
+
 }
+
+// 弹出 DICOM 选择模态框
+void DocumentPage::showOpenDicomDialog()
+{
+    // 仅在首次调用时构建 UI
+    if (!dicomDialog_) {
+        dicomDialog_ = new QDialog(this);
+        dicomDialog_->setModal(true);
+        dicomDialog_->setWindowTitle(QStringLiteral("打开"));
+       
+        auto* dialogLayout = new QVBoxLayout(dicomDialog_);
+        dialogLayout->setContentsMargins(14, 14, 14, 14);
+        dialogLayout->setSpacing(12);
+
+        // 顶部提示文案，提醒用户需要选择目录
+        auto* introLabel = new QLabel(QStringLiteral("请选择包含 DICOM 序列的文件夹，然后点击“加载”。"), dicomDialog_);
+        introLabel->setWordWrap(true);
+        dialogLayout->addWidget(introLabel);
+
+        // 输入与按钮区域
+        auto* inputRow = new QHBoxLayout();
+        inputRow->setSpacing(8);
+        auto* dirLabel = new QLabel(QStringLiteral("目录:"), dicomDialog_);
+        inputRow->addWidget(dirLabel);
+
+        inputDicomDirectory_ = new QLineEdit(dicomDialog_);
+        inputDicomDirectory_->setPlaceholderText(QStringLiteral("选择或输入 DICOM 序列所在目录"));
+        inputRow->addWidget(inputDicomDirectory_, 1);
+
+        btnDicomBrowse_ = new QPushButton(QStringLiteral("浏览..."), dicomDialog_);
+        inputRow->addWidget(btnDicomBrowse_);
+
+        dialogLayout->addLayout(inputRow);
+
+        // 状态与动作行
+        auto* actionRow = new QHBoxLayout();
+        actionRow->setSpacing(8);
+        dicomStatusLabel_ = new QLabel(QStringLiteral("尚未加载数据"), dicomDialog_);
+        dicomStatusLabel_->setStyleSheet(QStringLiteral("color:#d0d0d0;"));
+        actionRow->addWidget(dicomStatusLabel_, 1);
+
+        btnDicomLoad_ = new QPushButton(QStringLiteral("加载"), dicomDialog_);
+        btnDicomLoad_->setDefault(true);
+        actionRow->addWidget(btnDicomLoad_);
+        dialogLayout->addLayout(actionRow);
+
+        //设置固定大小
+        /*dicomDialog_->setFixedSize(350, 70);*/
+   
+        connect(btnDicomBrowse_, &QPushButton::clicked, this, [this]() {
+            const QString directory = QFileDialog::getExistingDirectory(this, QStringLiteral("选择 DICOM 序列所在目录"));
+            if (!directory.isEmpty()) {
+                inputDicomDirectory_->setText(directory);
+            }
+            });
+
+        connect(btnDicomLoad_, &QPushButton::clicked, this, [this]() {
+            loadDicomDirectory(inputDicomDirectory_->text().trimmed());
+            });
+
+        connect(inputDicomDirectory_, &QLineEdit::returnPressed, this, [this]() {
+            loadDicomDirectory(inputDicomDirectory_->text().trimmed());
+            });
+    }
+
+    // 每次展示前重置状态文案
+    updateDicomStatusLabel(QStringLiteral("尚未加载数据"), false);
+    dicomDialog_->show();
+    dicomDialog_->raise();
+    dicomDialog_->activateWindow();
+}
+
+// 统一更新 DICOM 状态提示，带上错误标记
+void DocumentPage::updateDicomStatusLabel(const QString& text, bool isError)
+{
+    if (!dicomStatusLabel_) {
+        return;
+    }
+
+    dicomStatusLabel_->setText(text);
+
+    // 根据状态选择颜色：错误为红色，成功为绿色，其余保持中性灰色。
+    if (isError) {
+        dicomStatusLabel_->setStyleSheet(QStringLiteral("color:#ff6464;"));
+    }
+    else if (text.contains(QStringLiteral("成功"))) {
+        dicomStatusLabel_->setStyleSheet(QStringLiteral("color:#8ae66a;"));
+    }
+    else {
+        dicomStatusLabel_->setStyleSheet(QStringLiteral("color:#d0d0d0;"));
+    }
+}
+
+// 实际加载 DICOM 目录并反馈状态
+void DocumentPage::loadDicomDirectory(const QString& directory)
+{
+    if (directory.isEmpty()) {
+        updateDicomStatusLabel(QStringLiteral("目录为空，请先选择 DICOM 数据。"), true);
+        return;
+    }
+
+    if (!mprService_) {
+        updateDicomStatusLabel(QStringLiteral("加载服务未初始化"), true);
+        return;
+    }
+
+    QString error;
+    if (!mprService_->loadSeries(directory, &error)) {
+        updateDicomStatusLabel(error.isEmpty() ? QStringLiteral("加载失败，请检查目录。") : error, true);
+        return;
+    }
+    updateDicomStatusLabel(QStringLiteral("DICOM 数据加载成功"), false);
+
+	emit dicomLoaded(mprService_.get());
+
+    if (dicomDialog_) {
+		dicomDialog_->accept();
+    }
+
+}
+

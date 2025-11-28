@@ -152,9 +152,6 @@ QWidget* VolumePage::buildRibbon02(QWidget* parent)
     layout02->setContentsMargins(4, 4, 4, 4);
     layout02->setSpacing(1);
 
-    /*const QIcon placeholderIcon = buildIcon(); */// 预生成占位图标，供所有按钮复用
-
-
     struct RibbonAction02
     {
         QString text;

@@ -31,5 +31,4 @@ namespace app {
         std::unique_ptr<core::services::OrthogonalMprService> m_mprService;
         std::unique_ptr<core::render::RenderService> m_renderService;
     };
-
 } // namespace app

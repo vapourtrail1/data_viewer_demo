@@ -43,7 +43,7 @@ namespace core::services {
             vtkRenderWindow* coronalWindow, vtkRenderWindowInteractor* coronalInteractor,
             vtkRenderWindow* volumeWindow, vtkRenderWindowInteractor* volumeInteractor);
 
-        // 支持从 QVTKOpenGLNativeWidget 直接 attach  ，如果在 UI 那边走的是 Widget 模式
+        // 支持从 QVTKOpenGLNativeWidget 直接 attach 。如果在 UI 那边走的是 Widget 模式
         void attachWidgets(QVTKOpenGLNativeWidget* axial,
             QVTKOpenGLNativeWidget* coronal,
             QVTKOpenGLNativeWidget* sagittal,

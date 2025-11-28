@@ -30,8 +30,9 @@ namespace core::mpr {
         vtkImageData* image() const;
 
     private:
-        vtkResliceCursor* m_cursor = nullptr;
+		vtkResliceCursor* m_cursor = nullptr;// vtkResliceCursor的意思是“重切片光标”，用于在三维图像数据中定义和操作切片平面。它允许用户通过交互方式调整切片的位置和方向，从而查看图像数据的不同截面。
         vtkImageData* m_image = nullptr;
+
     };
 
 } // namespace core::mpr

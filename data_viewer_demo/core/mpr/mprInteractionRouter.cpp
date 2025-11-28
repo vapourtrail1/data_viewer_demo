@@ -28,7 +28,7 @@ namespace core::mpr {
 
     void MprInteractionRouter::setAssembly(MprAssembly* assembly)
     {
-        m_assembly = assembly;
+		m_assembly = assembly;  
     }
 
     void MprInteractionRouter::setState(MprState* state)

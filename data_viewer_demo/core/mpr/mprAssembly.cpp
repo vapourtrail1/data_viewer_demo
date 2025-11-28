@@ -33,7 +33,7 @@ namespace core::mpr {
         detach();
     }
 
-    //attach detach
+	//这个函数的作用是将四个 QVTKOpenGLNativeWidget 画布与 MprAssembly 进行关联
     void MprAssembly::attach(QVTKOpenGLNativeWidget* axial,
         QVTKOpenGLNativeWidget* coronal,
         QVTKOpenGLNativeWidget* sagittal,
@@ -357,8 +357,8 @@ namespace core::mpr {
         }*/
     }
 
-    //  刷新 & getter 
 
+	//这个函数的作用是刷新所有的视图窗口，以确保它们显示最新的图像数据。
     void MprAssembly::refreshAll()
     {
         if (m_axialWindow) {
@@ -452,7 +452,7 @@ namespace core::mpr {
         const int cy = centerIndex(ext[2], ext[3]);
         const int cz = centerIndex(ext[4], ext[5]);
 
-        // 统一封装lambda：创建+配置 plane 
+        // 创建配置plane 
         auto setupPlane = [this, interactor, img](vtkSmartPointer<vtkImagePlaneWidget>& plane,
             int orientation,
             int sliceIndex)
@@ -478,22 +478,19 @@ namespace core::mpr {
 
                 plane->SetSliceIndex(sliceIndex);
 
-                // 1) 只保留三种动作：光标、slice 平移
-               
-                // 左键：沿法向移动 slice
+                // 沿法向移动 slice
                 plane->SetLeftButtonAction(vtkImagePlaneWidget::VTK_SLICE_MOTION_ACTION);
 
                 // 右键只是选中
                 plane->SetRightButtonAction(vtkImagePlaneWidget::VTK_CURSOR_ACTION);
 
-                // 2) 把 margin 区域关掉，避免点到边上进入旋转 / 缩放模式
+                // margin 区域关掉，避免点到边上进入旋转/缩放模式
                 plane->SetMarginSizeX(0.0);
                 plane->SetMarginSizeY(0.0);
                 plane->GetMarginProperty()->SetOpacity(0.0);   // 看不见 margin
 
-                // 3) 限制平面在体数据范围内，避免拖出 volume
+                //限制平面在体数据范围内，避免拖出 volume
                 plane->RestrictPlaneToVolumeOn();
-
                 plane->On();
             };
 
@@ -544,7 +541,6 @@ namespace core::mpr {
         }
     }
 
-    //
 	void MprAssembly::on2DSliceChanged(int axialZ, int coronalY, int sagittalX)//这个函数会被2D视图切片变化调用
     {
         if (m_planeX) {

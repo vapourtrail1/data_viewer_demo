@@ -21,6 +21,7 @@ class WindowPage;
 class ReportPage;
 class AnimationPage;
 class PerformancePage;
+class ReconstructPage;
 
 class CTViewer : public QMainWindow
 {
@@ -28,6 +29,7 @@ class CTViewer : public QMainWindow
 public:
     explicit CTViewer(QWidget* parent = nullptr);
     ~CTViewer();
+    
 
 protected:
     bool eventFilter(QObject* watched, QEvent* event) override;
@@ -38,6 +40,7 @@ private:
     void wireSignals();
     void setDefaults();
     void updateMaximizeButtonIcon();
+    void mountMprViewsToPage(QWidget* page);
 
 private:
     // ---- 标题栏控件 ----
@@ -71,4 +74,7 @@ private:
 	QPointer<ReportPage> pageReport_;
 	QPointer<AnimationPage> pageAnimation_;
 	QPointer<PerformancePage> pagePerformance_;
+    QPointer<ReconstructPage> mprViews_;
+
+    
 };

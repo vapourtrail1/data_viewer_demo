@@ -1,6 +1,4 @@
 #pragma once
-
-
 #include <QString>
 
 namespace core::common {
@@ -19,13 +17,13 @@ namespace core::common {
         Unknown,
     };
 
-    /**
+    /*
     泛型结构，包含返回值、错误码与额外信息。
     */
     template <typename T>
     struct Result {
         ErrorCode code = ErrorCode::Unknown;
-        T value{};
+		T value{};//value的意思是存储返回值
         QString message;
 
         bool ok() const { return code == ErrorCode::Ok; }

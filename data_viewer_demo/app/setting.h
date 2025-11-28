@@ -14,44 +14,28 @@ namespace app {
     public:
         Settings();
 
-        /**
-         从磁盘读取设置。
-         */
+        //从磁盘读取设置
         void load();
 
-        /**
-        将当前设置写入磁盘。
-        */
+        //将当前设置写入磁盘
         void save() const;
 
-        /**
-        最近打开的体数据路径列表。
-         */
+        //最近打开的体数据路径列表。
         const QStringList& recentFiles() const;
 
-        /**
-        添加最近文件（会去重并限制数量）。
-         */
+        //添加最近文件
         void addRecentFile(const QString& path);
 
-        /**
-        默认窗宽/窗位。
-        */
+        //默认窗宽/窗位
         core::common::WL defaultWL() const;
 
-        /**
-        更新默认窗宽/窗位。
-         */
+        //更新默认窗宽/窗位
         void setDefaultWL(core::common::WL wl);
-
-        /*
-        最近一次 RAW 参数（若存在）。
-        */
+       
+        //最近一次 RAW 参数
         std::optional<core::io::RawParam> lastRawParam() const;
 
-        /**
-        保存新的 RAW 参数。
-        */
+        //保存新的 RAW 参数
         void setLastRawParam(const core::io::RawParam& param);
 
     private:
