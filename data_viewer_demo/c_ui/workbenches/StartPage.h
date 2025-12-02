@@ -26,3 +26,5 @@ private:
 	//≥…‘±
 	/*QPointer<QFrame> ribbon01_;*/
 };
+
+//

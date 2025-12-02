@@ -540,3 +540,5 @@ void CTViewer::setDefaults() {
         move(availableGeometry.topLeft());
     }
 }
+
+//

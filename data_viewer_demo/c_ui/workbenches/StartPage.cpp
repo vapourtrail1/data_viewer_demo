@@ -312,3 +312,5 @@ QWidget* StartPagePage::buildRibbon01(QWidget* parent)
 //    painter.end();
 //    return QIcon(pixmap);
 //}
+
+//
