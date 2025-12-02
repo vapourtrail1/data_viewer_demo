@@ -90,7 +90,6 @@ static QIcon loadIconFor(const QString& text) {
     return QIcon(":/icons/icons/move.png");
 }
 
-
 EditPage::EditPage(QWidget* parent)
     : QWidget(parent)
 {

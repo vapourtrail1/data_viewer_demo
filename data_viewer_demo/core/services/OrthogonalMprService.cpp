@@ -16,12 +16,13 @@ VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2);
 #include "core/mpr/mprInteractionRouter.h"
 #include "core/render/renderService.h"
 #include "core/services/VolumeService.h"
+#include "core/services/DistanceMeasureService.h"
 #include "core/data/volumeModel.h"
 
 Q_LOGGING_CATEGORY(lcMprService, "core.mpr.OrthogonalMprService")
 
 /*
-   将数据和渲染管线  和  视图窗口 绑定在一起
+   将数据和渲染管线和视图窗口 绑定在一起
 */
 
 namespace core::services {
@@ -32,6 +33,7 @@ namespace core::services {
 		std::unique_ptr<core::mpr::MprInteractionRouter> router;//这个参数负责处理用户交互事件，并将其映射到 MPR 状态的更新
 		std::unique_ptr<core::render::RenderService>   render;//这个参数负责应用渲染相关的设置，比如窗口宽度/水平和预设
 		std::unique_ptr<VolumeService>                 volume;//这个参数负责加载和管理体数据，比如 DICOM 系列
+		std::unique_ptr<DistanceMeasureService>      distance;//这个参数负责处理距离测量相关的功能
 		bool hasData = false;                                 //标记当前是否有绑定的体数据
 		vtkImageData* image = nullptr;                        //当前绑定的体数据
     };
@@ -39,11 +41,12 @@ namespace core::services {
     OrthogonalMprService::OrthogonalMprService()
         : impl_(std::make_unique<Impl>())
     {
-        impl_->state = std::make_unique<core::mpr::MprState>();
+		impl_->state = std::make_unique<core::mpr::MprState>();//构造函数里创建各个组件的实例
         impl_->assembly = std::make_unique<core::mpr::MprAssembly>();
         impl_->router = std::make_unique<core::mpr::MprInteractionRouter>();
         impl_->render = std::make_unique<core::render::RenderService>();
-        impl_->volume = std::make_unique<VolumeService>();//构造函数new一下
+        impl_->volume = std::make_unique<VolumeService>();
+        impl_->distance = std::make_unique<DistanceMeasureService>();
     }
 
     OrthogonalMprService::~OrthogonalMprService() = default;
@@ -102,6 +105,11 @@ namespace core::services {
 		impl_->state->bindImage(image);//把参数 image 传给 MprState 对象
         impl_->state->resetToCenter();
         impl_->hasData = true;
+
+        if (impl_->distance) {
+			impl_->distance->bindVolume(volumeModel);//bindVolume 函数把当前的 VolumeModel 传给 DistanceMeasureService 对象  b
+        }
+
         if (error) {
             error->clear();  // 告诉上层 没有错误
         }
@@ -174,7 +182,6 @@ namespace core::services {
     }
 
     //绑定一份体数据
-
 	bool OrthogonalMprService::bindImage(vtkImageData* img)
     {
         impl_->image = img;
@@ -188,13 +195,12 @@ namespace core::services {
         return true;
     }
 
-
     bool OrthogonalMprService::hasData() const
     {
         return impl_->hasData;
     }
 
-	// 重置游标到体数据中心
+	//重置游标到体数据中心
     void OrthogonalMprService::resetCursorToCenter()
     {
         if (!impl_->hasData) return;
@@ -249,6 +255,26 @@ namespace core::services {
         impl_->assembly->refreshAll();
 #else
         Q_UNUSED(name);
+#endif
+    }
+
+    DistanceMeasureService* OrthogonalMprService::distanceService() const
+    {
+        return impl_->distance.get();//返回distancemeasureservice对象的指针
+	}   
+
+
+    int OrthogonalMprService::addDistanceMeasureByVoxel(const std::array<int, 3>& p0Ijk,const std::array<int, 3>& p1Ijk)
+    {
+#if USE_VTK
+        if (!impl_->hasData || !impl_->distance) {
+            return -1;
+        }
+        return impl_->distance->addDistanceByVoxel(p0Ijk, p1Ijk);
+#else
+        Q_UNUSED(p0Ijk);
+        Q_UNUSED(p1Ijk);
+        return -1;
 #endif
     }
 } // namespace core::services

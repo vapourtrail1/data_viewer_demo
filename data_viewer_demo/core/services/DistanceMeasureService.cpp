@@ -1,7 +1,8 @@
 #include "core/services/DistanceMeasureService.h"
-#include <cmath>  // std::sqrt
+#include <cmath>  // 使用std::sqrt
 #include "core/data/volumeModel.h"
 
+//VolumeModel 的几何信息把 IJK 转成 mm，并把结果存起来
 namespace core::services {
 
     DistanceMeasureService::DistanceMeasureService() = default;
@@ -62,7 +63,7 @@ namespace core::services {
     DistanceMeasureService::Point3D
         DistanceMeasureService::voxelToWorld(const std::array<int, 3>& ijk) const
     {
-        Point3D out{};
+		Point3D out{};//这句话的意思是创建一个名为 out 的 Point3D 结构体变量，并使用默认构造函数对其成员进行初始化。
 
         if (!volume_) {
             // 理论上上层已经检查过，这里只是防御
@@ -77,7 +78,7 @@ namespace core::services {
         auto origin = volume_->origin3();         // [ox, oy, oz]
         auto dir = volume_->directionMatrix(); // 3x3，按行展开
 
-        // 先把体素坐标乘 spacing，得到物理坐标（还没乘方向矩阵）
+        // 先把体素坐标乘 spacing，得到物理坐标 还没乘方向矩阵
         const double sx = ijk[0] * spacing[0];
         const double sy = ijk[1] * spacing[1];
         const double sz = ijk[2] * spacing[2];
@@ -86,12 +87,10 @@ namespace core::services {
         // R = [ r00 r01 r02
         //       r10 r11 r12
         //       r20 r21 r22 ]
-        out.x = origin[0]
-            + dir[0] * sx + dir[1] * sy + dir[2] * sz;
-        out.y = origin[1]
-            + dir[3] * sx + dir[4] * sy + dir[5] * sz;
-        out.z = origin[2]
-            + dir[6] * sx + dir[7] * sy + dir[8] * sz;
+
+        out.x = origin[0]+ dir[0] * sx + dir[1] * sy + dir[2] * sz;
+        out.y = origin[1]+ dir[3] * sx + dir[4] * sy + dir[5] * sz;
+        out.z = origin[2]+ dir[6] * sx + dir[7] * sy + dir[8] * sz;
 
         return out;
     }

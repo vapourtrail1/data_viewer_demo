@@ -1,5 +1,4 @@
 #pragma once
-
 #include <memory>
 #include <array>
 #include <QString>
@@ -29,7 +28,9 @@ namespace core::services {
 	 *  - bindImage(...)：绑定一份 vtkImageData 目前主要传入dicom数据
      *  - setSliceIndex / setWindowLevel / applyPreset 等操作
      */
+
     class DistanceMeasureService;
+
     class OrthogonalMprService
     {
     public:
@@ -75,10 +76,18 @@ namespace core::services {
         // 应用预设
         void applyPreset(const QString& name);
 
+        /*
+         * 获取内部的 DistanceMeasureService
+         * UI 层或者别的模块，可以通过它来
+         * 添加测量
+         * 查询所有测量记录
+         */
         DistanceMeasureService* distanceService() const;
-  
-        //封装一个方便用体素坐标添加测量的接口。内部直接转调 DistanceMeasureService::addDistanceByVoxel。
-   
+
+        /*
+         * 封装一个方便用体素坐标添加测量的接口
+         * 内部直接转调 DistanceMeasureService::addDistanceByVoxel
+         */
         int addDistanceMeasureByVoxel(const std::array<int, 3>& p0Ijk,const std::array<int, 3>& p1Ijk);
 
     private:

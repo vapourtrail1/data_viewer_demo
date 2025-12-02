@@ -149,13 +149,13 @@ StartPagePage::StartPagePage(QWidget* parent)
 QWidget* StartPagePage::buildRibbon01(QWidget* parent)
 {
     // 创建功能区容器
-    auto* ribbon01 = new QFrame(parent);
-    ribbon01->setObjectName(QStringLiteral("startRibbon"));
-    ribbon01->setStyleSheet(QStringLiteral(
+    auto* ribbon01_ = new QFrame(parent);
+    ribbon01_->setObjectName(QStringLiteral("startRibbon"));
+    ribbon01_->setStyleSheet(QStringLiteral(
         "QFrame#startRibbon{background-color:#322F30; border-radius:8px; border:1px solid #2b2b2b;}"
         "QToolButton{color:#e0e0e0; font-weight:600;}"));
 
-    auto* layout01 = new QHBoxLayout(ribbon01);
+    auto* layout01 = new QHBoxLayout(ribbon01_);
     layout01->setContentsMargins(4, 4, 4, 4);
     layout01->setSpacing(1);
 
@@ -190,7 +190,7 @@ QWidget* StartPagePage::buildRibbon01(QWidget* parent)
 
     for (const auto& action : actions01) {
         // 每个功能都使用图标,文字的形式展示
-        auto* button = new QToolButton(ribbon01);
+        auto* button = new QToolButton(ribbon01_);
         QString wrappedText = wrapByWidth(action.text, button->font(), 51);
         button->setText(wrappedText);
         button->setIcon(loadIconFor(action.text));
@@ -269,8 +269,22 @@ QWidget* StartPagePage::buildRibbon01(QWidget* parent)
         layout01->addWidget(button);
     }
     layout01->addStretch();
-    return ribbon01;
+    return ribbon01_;
 }
+
+//void StartPagePage::openDicomDistance() {
+//    if (!ribbon01_) {
+//        return;
+//    }
+//
+//    connect(ribbon01_, &QPushButton::clicked, this, [this](QFrame* frame) {
+//		const QString action = frame->property("action").toString();   
+//        if (action == "距离")
+//        {
+//			emit dicomDistance(action);
+//        }
+//        });
+//}
 
 //QIcon EditPage::buildIcon() const
 //{
