@@ -198,6 +198,13 @@ QWidget* StartPagePage::buildRibbon01(QWidget* parent)
         button->setIconSize(QSize(40, 40));
         button->setMinimumSize(QSize(70, 90));
 
+        if (action.text == QStringLiteral("距离")) {
+            // “距离”按钮点击时发出信号，交由主窗口调用后端测距逻辑。
+            connect(button, &QToolButton::clicked, this, [this]() {
+                emit distanceRequested();
+                });
+        }
+
         if (action.hasMenu == 1) {  
             auto* menu = new QMenu(button);
             menu->setStyleSheet(QStringLiteral(

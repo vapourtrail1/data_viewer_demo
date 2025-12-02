@@ -16,13 +16,14 @@ class StartPagePage : public QWidget
 public:
 	explicit StartPagePage(QWidget* parent = nullptr);
 
-//signals:
-//	void dicomDistance(const QString& acticon);
+signals:
+	// 点击“距离”按钮时向外通知，让主窗口去处理实际测量逻辑。
+	void distanceRequested();
 
 private:
 	QWidget* buildRibbon01(QWidget* parent);
 	/*void openDicomDistance();*/
 
-	//��Ա
+	//成员
 	/*QPointer<QFrame> ribbon01_;*/
 };

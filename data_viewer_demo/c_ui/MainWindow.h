@@ -22,6 +22,7 @@ class ReportPage;
 class AnimationPage;
 class PerformancePage;
 class ReconstructPage;
+namespace core::services { class OrthogonalMprService; }
 
 class CTViewer : public QMainWindow
 {
@@ -71,10 +72,11 @@ private:
     QPointer<CADAndThen> pageCAD_;
 	QPointer<AnalysisPage> pageAnalysis_;
     QPointer<WindowPage> pageWindow_;
-	QPointer<ReportPage> pageReport_;
-	QPointer<AnimationPage> pageAnimation_;
-	QPointer<PerformancePage> pagePerformance_;
+    QPointer<ReportPage> pageReport_;
+        QPointer<AnimationPage> pageAnimation_;
+        QPointer<PerformancePage> pagePerformance_;
     QPointer<ReconstructPage> mprViews_;
+    core::services::OrthogonalMprService* currentMprService_ = nullptr; // 当前持有的 MPR 服务指针，供测距使用。
 
     
 };
