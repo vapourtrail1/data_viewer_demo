@@ -444,7 +444,7 @@ void CTViewer::buildCentral()
 
 	mprViews_ = new ReconstructPage(nullptr);
 
-    // 连接 StartPage 的“距离”按钮，触发后端测距流程。
+    // 连接 StartPage 的“距离”按钮，触发后端测距流程
     if (pageStart_) {
         connect(pageStart_, &StartPagePage::distanceRequested, this, [this]() {
             // 如果四视图未挂载或服务为空，则提示用户。
@@ -453,31 +453,16 @@ void CTViewer::buildCentral()
                 return;
             }
 
-            // 使用示例体素坐标调用后端测距，确保后端链路可用。
-            const std::array<int, 3> startVoxel{ 0, 0, 0 };
-            const std::array<int, 3> endVoxel{ 10, 10, 10 };
-            const int distanceId = currentMprService_->addDistanceMeasureByVoxel(startVoxel, endVoxel);
-            if (distanceId < 0) {
-                statusBar()->showMessage(QStringLiteral("距离测量失败，请检查当前数据状态。"), 3000);
-                return;
-            }
+            // 使用示例体素坐标调用后端测距
+            //const std::array<int, 3> startVoxel{ 0, 0, 0 };
+            //const std::array<int, 3> endVoxel{ 10, 10, 10 };
+            //const int distanceId = currentMprService_->addDistanceMeasureByVoxel(startVoxel, endVoxel);
+            //if (distanceId < 0) {
+            //    statusBar()->showMessage(QStringLiteral("距离测量失败，请检查当前数据状态。"), 3000);
+            //    return;
+            //}
 
-            // 查询最新的测距结果并反馈给状态栏。
-            if (auto* distanceService = currentMprService_->distanceService()) {
-                const auto& items = distanceService->items();
-                const auto found = std::find_if(items.begin(), items.end(), [distanceId](const auto& item) {
-                    return item.id == distanceId;
-                    });
-                if (found != items.end()) {
-                    statusBar()->showMessage(QStringLiteral("距离测量成功，长度：%1 mm").arg(found->lengthMm, 0, 'f', 2), 4000);
-                }
-                else {
-                    statusBar()->showMessage(QStringLiteral("距离测量已记录。"), 3000);
-                }
-            }
-            else {
-                statusBar()->showMessage(QStringLiteral("距离测量记录服务不可用。"), 3000);
-            }
+
             });
     }
 
