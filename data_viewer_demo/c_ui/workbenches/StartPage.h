@@ -16,8 +16,8 @@ class StartPagePage : public QWidget
 public:
 	explicit StartPagePage(QWidget* parent = nullptr);
 
-//signals:
-//	void dicomDistance(const QString& acticon);
+signals:
+	void distanceRequested();
 
 private:
 	QWidget* buildRibbon01(QWidget* parent);

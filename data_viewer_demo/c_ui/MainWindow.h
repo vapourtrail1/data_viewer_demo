@@ -23,6 +23,11 @@ class AnimationPage;
 class PerformancePage;
 class ReconstructPage;
 
+// 声明
+namespace core::services {
+	class OrthogonalMprService;
+}
+
 class CTViewer : public QMainWindow
 {
     Q_OBJECT
@@ -75,6 +80,8 @@ private:
 	QPointer<AnimationPage> pageAnimation_;
 	QPointer<PerformancePage> pagePerformance_;
     QPointer<ReconstructPage> mprViews_;
+    //测量
+	core::services::OrthogonalMprService* currentMprService_ = nullptr;
 
     
 };

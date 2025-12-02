@@ -15,6 +15,7 @@
 #include "c_ui/workbenches/PerformancePage.h"
 #include "c_ui/workbenches/ReconstructPage.h"
 #include "core/services/OrthogonalMprService.h"
+#include "core/services/DistanceMeasureService.h"
 
 #include "core/common/VtkMacros.h"
 #include <QApplication>
@@ -26,6 +27,8 @@
 #include <QStyle>
 #include <QStatusBar>
 #include <QMouseEvent>
+#include <array>
+#include <algorithm>
 #include <QEvent>
 #include <QStringList>
 #include <QGuiApplication>
@@ -441,6 +444,42 @@ void CTViewer::buildCentral()
 
 	mprViews_ = new ReconstructPage(nullptr);
 
+    // 连接 StartPage 的“距离”按钮，触发后端测距流程。
+    if (pageStart_) {
+        connect(pageStart_, &StartPagePage::distanceRequested, this, [this]() {
+            // 如果四视图未挂载或服务为空，则提示用户。
+            if (!mprViews_ || !mprViews_->parentWidget() || !currentMprService_ || !currentMprService_->hasData()) {
+                statusBar()->showMessage(QStringLiteral("请先打开四视图并加载数据后再测量距离。"), 3000);
+                return;
+            }
+
+            // 使用示例体素坐标调用后端测距，确保后端链路可用。
+            const std::array<int, 3> startVoxel{ 0, 0, 0 };
+            const std::array<int, 3> endVoxel{ 10, 10, 10 };
+            const int distanceId = currentMprService_->addDistanceMeasureByVoxel(startVoxel, endVoxel);
+            if (distanceId < 0) {
+                statusBar()->showMessage(QStringLiteral("距离测量失败，请检查当前数据状态。"), 3000);
+                return;
+            }
+
+            // 查询最新的测距结果并反馈给状态栏。
+            if (auto* distanceService = currentMprService_->distanceService()) {
+                const auto& items = distanceService->items();
+                const auto found = std::find_if(items.begin(), items.end(), [distanceId](const auto& item) {
+                    return item.id == distanceId;
+                    });
+                if (found != items.end()) {
+                    statusBar()->showMessage(QStringLiteral("距离测量成功，长度：%1 mm").arg(found->lengthMm, 0, 'f', 2), 4000);
+                }
+                else {
+                    statusBar()->showMessage(QStringLiteral("距离测量已记录。"), 3000);
+                }
+            }
+            else {
+                statusBar()->showMessage(QStringLiteral("距离测量记录服务不可用。"), 3000);
+            }
+            });
+    }
 
     //连接 DocumentPage 发出的信号
     connect(pageDocument_, &DocumentPage::moduleClicked, this, [this](const QString& msg) {
@@ -462,6 +501,7 @@ void CTViewer::buildCentral()
 
 	//emit dicomLoaded
     connect(pageDocument_, &DocumentPage::dicomLoaded, this, [this](core::services::OrthogonalMprService* service) {
+		currentMprService_ = service;
         // 若成功加载 DICOM，则初始化并展示三视图  3D 视图。
         if (mprViews_ && service) {
             const bool ok = mprViews_->initializeWithService(service);//把 4 个 QVTK 视图 和后端的 OrthogonalMprService 绑在一起
