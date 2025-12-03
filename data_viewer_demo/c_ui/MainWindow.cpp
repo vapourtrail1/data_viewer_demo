@@ -336,7 +336,7 @@ void CTViewer::mountMprViewsToPage(QWidget* page)
         return;
     }
 
-    // 每个页面里都放了 objectName = "viewerHost" 的容器
+	//在page下面找一个子控件，类型必须是QFrame，名字是viewerHost
     auto* host = page->findChild<QFrame*>(QStringLiteral("viewerHost"));
 
     if (!host) {
@@ -349,18 +349,15 @@ void CTViewer::mountMprViewsToPage(QWidget* page)
         l->setSpacing(0);
     }
 
-    // 从旧父控件/旧layout里摘掉
+    // 如果之前有父控件 先把这块视图板子从它原来的地方拆下来
     if (auto* oldParent = mprViews_->parentWidget()) {
         if (auto* oldLayout = oldParent->layout()) {
             oldLayout->removeWidget(mprViews_);
         }
-        /*else {
-            statusBar()->showMessage(QStrig)
-        }*/
     }
     
     mprViews_->setParent(host);
-    host->layout()->addWidget(mprViews_);
+    host->layout()->addWidget(mprViews_);//将视图widget加到viewhost布局里
     mprViews_->show();
 }
 
@@ -462,6 +459,7 @@ void CTViewer::buildCentral()
                 statusBar()->showMessage(QStringLiteral("未初始化四视图，请初始化四视图之后再测量"),3000);
                 return;
             }
+			//没有父控件和pageStart_为真 就把四视图挂载到pageStart_
             if (!mprViews_->parentWidget() && pageStart_) {
                 mountMprViewsToPage(pageStart_);
             }

@@ -22,6 +22,7 @@ VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2);
 #include "core/services/VolumeService.h"
 #include "core/services/DistanceMeasureService.h"
 #include "core/data/volumeModel.h"
+#include <vector>
 
 Q_LOGGING_CATEGORY(lcMprService, "core.mpr.OrthogonalMprService")
 
@@ -40,7 +41,7 @@ namespace core::services {
 		bool hasData = false;                                 //标记当前是否有绑定的体数据
 		vtkImageData* image = nullptr;                        //当前绑定的体数据
 #if USE_VTK
-		std::array<vtkSmartPointer<vtkDistanceWidget>, 3> distanceWidgets; //三个视图的距离测量控件
+		std::array<std::vector<vtkSmartPointer<vtkDistanceWidget>>, 3> distanceWidgets; 
 #endif
     };
 
@@ -179,14 +180,16 @@ namespace core::services {
 #endif
     }
 
-    void OrthogonalMprService::detach()
+	void OrthogonalMprService::detach()//解绑，释放资源
     {
         impl_->router->unwire();
         impl_->assembly->detach();
         impl_->hasData = false;
         impl_->image = nullptr;
 #if USE_VTK
-        impl_->distanceWidgets = {};
+        for (auto& widgets : impl_->distanceWidgets) {
+            widgets.clear();
+        }
 #endif
     }
 
@@ -296,11 +299,11 @@ namespace core::services {
 
         double spacing[3] = { 1.0, 1.0, 1.0 };
         if (impl_->state->image()) {
-         
             impl_->state->image()->GetSpacing(spacing);
         }
 
-        auto setupDistanceWidget = [&](vtkSmartPointer<vtkDistanceWidget>& widget,
+        auto setupDistanceWidget = [&](
+            std::vector<vtkSmartPointer<vtkDistanceWidget>>& widgets,//加上容器
             vtkResliceImageViewer* viewer,
             int orientation) -> bool
             {
@@ -313,9 +316,8 @@ namespace core::services {
                     return false;
                 }
 
-                if (!widget) {
-                    widget = vtkSmartPointer<vtkDistanceWidget>::New();
-                }
+                auto  widget = vtkSmartPointer<vtkDistanceWidget>::New();
+              
                 widget->SetInteractor(interactor);
 
                 vtkSmartPointer<vtkDistanceRepresentation2D> rep =
@@ -345,6 +347,8 @@ namespace core::services {
                 widget->SetPriority(0.9);
                 widget->ManagesCursorOn();
                 widget->On();
+                // 存储新创建的控件，便于在同一视图中留下多条测量线
+                widgets.push_back(widget);
                 return true;
             };
 
