@@ -328,13 +328,20 @@ void CTViewer::updateMaximizeButtonIcon()
     //btnMaximize_->setText(QStringLiteral("□"));
 }
 
+// 将四视图(reconstruction)挂载到指定页面的 viewerHost 容器中
+// 传入的参数是页面指针
 void CTViewer::mountMprViewsToPage(QWidget* page)
 {
-    if (!page || !mprViews_) return;
+    if (!page || !mprViews_) {
+        return;
+    }
 
-    // 每个页面里我们都放了 objectName = "viewerHost" 的容器
+    // 每个页面里都放了 objectName = "viewerHost" 的容器
     auto* host = page->findChild<QFrame*>(QStringLiteral("viewerHost"));
-    if (!host) return;
+
+    if (!host) {
+        return;
+    }
 
     if (!host->layout()) {
         auto* l = new QVBoxLayout(host);
@@ -347,8 +354,11 @@ void CTViewer::mountMprViewsToPage(QWidget* page)
         if (auto* oldLayout = oldParent->layout()) {
             oldLayout->removeWidget(mprViews_);
         }
+        /*else {
+            statusBar()->showMessage(QStrig)
+        }*/
     }
-
+    
     mprViews_->setParent(host);
     host->layout()->addWidget(mprViews_);
     mprViews_->show();
@@ -444,25 +454,18 @@ void CTViewer::buildCentral()
 
 	mprViews_ = new ReconstructPage(nullptr);
 
-    // 连接 StartPage 的“距离”按钮，触发后端测距流程
+    // 连接 StartPage 的距离按钮，触发后端测距流程
     if (pageStart_) {
         connect(pageStart_, &StartPagePage::distanceRequested, this, [this]() {
             // 如果四视图未挂载或服务为空，则提示用户。
-            if (!mprViews_ || !mprViews_->parentWidget() || !currentMprService_ || !currentMprService_->hasData()) {
-                statusBar()->showMessage(QStringLiteral("请先打开四视图并加载数据后再测量距离。"), 3000);
+            if (!mprViews_ || !currentMprService_ || !currentMprService_->hasData()) {
+                statusBar()->showMessage(QStringLiteral("未初始化四视图，请初始化四视图之后再测量"),3000);
                 return;
             }
-
-            // 使用示例体素坐标调用后端测距
-            //const std::array<int, 3> startVoxel{ 0, 0, 0 };
-            //const std::array<int, 3> endVoxel{ 10, 10, 10 };
-            //const int distanceId = currentMprService_->addDistanceMeasureByVoxel(startVoxel, endVoxel);
-            //if (distanceId < 0) {
-            //    statusBar()->showMessage(QStringLiteral("距离测量失败，请检查当前数据状态。"), 3000);
-            //    return;
-            //}
-
-
+            if (!mprViews_->parentWidget() && pageStart_) {
+                mountMprViewsToPage(pageStart_);
+            }
+            currentMprService_->enable2dDistanceMeasure();
             });
     }
 

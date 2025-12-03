@@ -90,6 +90,7 @@ namespace core::services {
          */
         int addDistanceMeasureByVoxel(const std::array<int, 3>& p0Ijk,const std::array<int, 3>& p1Ijk);
 
+		bool enable2dDistanceMeasure();
     private:
         struct Impl;
         std::unique_ptr<Impl> impl_;

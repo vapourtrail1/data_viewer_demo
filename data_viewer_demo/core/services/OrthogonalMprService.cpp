@@ -8,6 +8,10 @@
 #  include <vtkRenderWindow.h>
 #  include <vtkRenderWindowInteractor.h>
 #  include <vtkResliceImageViewer.h>
+#  include <vtkDistanceWidget.h>
+#  include <vtkDistanceRepresentation.h>
+#  include <vtkDistanceRepresentation2D.h>
+#  include <vtkSmartPointer.h>
 VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2);
 #endif
 
@@ -24,9 +28,8 @@ Q_LOGGING_CATEGORY(lcMprService, "core.mpr.OrthogonalMprService")
 /*
    将数据和渲染管线和视图窗口 绑定在一起
 */
-
 namespace core::services {
-
+    
     struct OrthogonalMprService::Impl {
 		std::unique_ptr<core::mpr::MprState>           state; //这个参数保存了当前的图像数据和游标状态
 		std::unique_ptr<core::mpr::MprAssembly>        assembly;//这个参数负责管理 MPR 视图的 VTK 管线和渲染窗口
@@ -36,10 +39,12 @@ namespace core::services {
 		std::unique_ptr<DistanceMeasureService>      distance;//这个参数负责处理距离测量相关的功能
 		bool hasData = false;                                 //标记当前是否有绑定的体数据
 		vtkImageData* image = nullptr;                        //当前绑定的体数据
+#if USE_VTK
+		std::array<vtkSmartPointer<vtkDistanceWidget>, 3> distanceWidgets; //三个视图的距离测量控件
+#endif
     };
 
-    OrthogonalMprService::OrthogonalMprService()
-        : impl_(std::make_unique<Impl>())
+    OrthogonalMprService::OrthogonalMprService(): impl_(std::make_unique<Impl>())
     {
 		impl_->state = std::make_unique<core::mpr::MprState>();//构造函数里创建各个组件的实例
         impl_->assembly = std::make_unique<core::mpr::MprAssembly>();
@@ -47,6 +52,7 @@ namespace core::services {
         impl_->render = std::make_unique<core::render::RenderService>();
         impl_->volume = std::make_unique<VolumeService>();
         impl_->distance = std::make_unique<DistanceMeasureService>();
+        /*impl_->hasData = false;*/
     }
 
     OrthogonalMprService::~OrthogonalMprService() = default;
@@ -179,6 +185,9 @@ namespace core::services {
         impl_->assembly->detach();
         impl_->hasData = false;
         impl_->image = nullptr;
+#if USE_VTK
+        impl_->distanceWidgets = {};
+#endif
     }
 
     //绑定一份体数据
@@ -261,7 +270,7 @@ namespace core::services {
     DistanceMeasureService* OrthogonalMprService::distanceService() const
     {
         return impl_->distance.get();//返回distancemeasureservice对象的指针
-	}   
+	}
 
 
     int OrthogonalMprService::addDistanceMeasureByVoxel(const std::array<int, 3>& p0Ijk,const std::array<int, 3>& p1Ijk)
@@ -275,6 +284,86 @@ namespace core::services {
         Q_UNUSED(p0Ijk);
         Q_UNUSED(p1Ijk);
         return -1;
+#endif
+    }
+
+    bool OrthogonalMprService::enable2dDistanceMeasure()
+    {
+#if USE_VTK
+        if (!impl_->hasData || !impl_->assembly || !impl_->state) {
+            return false;
+        }
+
+        double spacing[3] = { 1.0, 1.0, 1.0 };
+        if (impl_->state->image()) {
+         
+            impl_->state->image()->GetSpacing(spacing);
+        }
+
+        auto setupDistanceWidget = [&](vtkSmartPointer<vtkDistanceWidget>& widget,
+            vtkResliceImageViewer* viewer,
+            int orientation) -> bool
+            {
+                if (!viewer) {
+                    return false;
+                }
+
+                auto* interactor = viewer->GetInteractor();
+                if (!interactor) {
+                    return false;
+                }
+
+                if (!widget) {
+                    widget = vtkSmartPointer<vtkDistanceWidget>::New();
+                }
+                widget->SetInteractor(interactor);
+
+                vtkSmartPointer<vtkDistanceRepresentation2D> rep =
+                    vtkDistanceRepresentation2D::SafeDownCast(widget->GetRepresentation());
+                if (!rep) {
+                    rep = vtkSmartPointer<vtkDistanceRepresentation2D>::New();
+                    widget->SetRepresentation(rep);
+                }
+                rep->SetRenderer(viewer->GetRenderer());
+                rep->SetLabelFormat("%-#2.6g mm");
+
+                if (auto* baseRep = vtkDistanceRepresentation::SafeDownCast(rep.GetPointer())) {
+                    double scale = 1.0;
+                    // 根据切片方向挑选在平面内的 spacing
+                    if (orientation == vtkResliceImageViewer::SLICE_ORIENTATION_XY) {
+                        scale = (spacing[0] + spacing[1]) * 0.5;
+                    }
+                    else if (orientation == vtkResliceImageViewer::SLICE_ORIENTATION_XZ) {
+                        scale = (spacing[0] + spacing[2]) * 0.5;
+                    }
+                    else if (orientation == vtkResliceImageViewer::SLICE_ORIENTATION_YZ) {
+                        scale = (spacing[1] + spacing[2]) * 0.5;
+                    }
+                    baseRep->SetScale(scale);
+                }
+
+                widget->SetPriority(0.9);
+                widget->ManagesCursorOn();
+                widget->On();
+                return true;
+            };
+
+        bool axialOk = setupDistanceWidget(
+            impl_->distanceWidgets[0],
+            impl_->assembly->axialViewer(),
+            vtkResliceImageViewer::SLICE_ORIENTATION_XY);
+        bool coronalOk = setupDistanceWidget(
+            impl_->distanceWidgets[1],
+            impl_->assembly->coronalViewer(),
+            vtkResliceImageViewer::SLICE_ORIENTATION_XZ);
+        bool sagittalOk = setupDistanceWidget(
+            impl_->distanceWidgets[2],
+            impl_->assembly->sagittalViewer(),
+            vtkResliceImageViewer::SLICE_ORIENTATION_YZ);
+
+        return axialOk || coronalOk || sagittalOk;
+#else
+        return false;
 #endif
     }
 } // namespace core::services

@@ -130,6 +130,7 @@ StartPagePage::StartPagePage(QWidget* parent)
     placeholderLayout->addWidget(desc);*/
 
     // 用于挂载 2x2 视口的容器
+	//viewerHost专门来容纳Reconstruction这个2*2的视图容器
     auto* viewerHost = new QFrame(placeholder);
     viewerHost->setObjectName(QStringLiteral("viewerHost"));
     viewerHost->setStyleSheet(QStringLiteral(
@@ -140,7 +141,7 @@ StartPagePage::StartPagePage(QWidget* parent)
     hostLayout->setContentsMargins(0, 0, 0, 0);
     hostLayout->setSpacing(0);
 
-    placeholderLayout->addWidget(viewerHost, 1);
+	placeholderLayout->addWidget(viewerHost, 1);//第二个参数的值为1，表示该控件在垂直布局中占据剩余空间
     
 	// 占位区填充到主布局中
     layout01->addWidget(placeholder, 1);

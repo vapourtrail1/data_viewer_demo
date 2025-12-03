@@ -170,8 +170,7 @@ QWidget* SelectPage::buildRibbon03(QWidget* parent)
         { QStringLiteral("导航光标"), 0 },
         { QStringLiteral("裁剪"), 1 },
         { QStringLiteral("选择对象(3D)"), 2 },
-
-        // 下面这段要放成两行×四列（图标左、文字右）
+        // 下面这段要放成两行*四列（图标左、文字右）
         { QStringLiteral("绘制"), 0 },
         { QStringLiteral("矩形"), 0 },
         { QStringLiteral("圆角矩形"), 0 },

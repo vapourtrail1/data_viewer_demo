@@ -82,8 +82,6 @@ private:
     QPointer<ReconstructPage> mprViews_;
     //测量
 	core::services::OrthogonalMprService* currentMprService_ = nullptr;
-
-    
 };
 
 //

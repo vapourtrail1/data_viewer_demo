@@ -9,16 +9,14 @@ namespace core::data {
 namespace core::services {
 
     /*
-     * DistanceMeasureService
-     * 负责：
-     *  - 绑定当前的 VolumeModel（DICOM -> vtkImageData 的那套）
-     *  - 记录所有“两点距离”测量
-     *  - 提供 IJK -> 世界坐标 -> mm 距离 的计算
+     *  绑定当前的 VolumeModel DICOM ->vtkImageData 的那套
+     *  记录所有 两点距离 测量
+     *  提供 IJK -> 世界坐标 -> mm 距离 的计算
      */
     class DistanceMeasureService
     {
     public:
-        // 世界坐标下的三维点（单位：一般是 mm）
+        // 世界坐标下的三维点 单位  mm
         struct Point3D
         {
             double x = 0.0;
@@ -39,7 +37,7 @@ namespace core::services {
 
         /*
          * 绑定当前体数据。
-         * 注意：这里只是保存指针，不负责管理 VolumeModel 的生命周期。
+         * 注意：这里只是保存指针，不负责管理 VolumeModel 的生命周期
          */
         void bindVolume(const core::data::VolumeModel* volume);
 
