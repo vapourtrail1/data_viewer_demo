@@ -465,6 +465,19 @@ void CTViewer::buildCentral()
             }
             currentMprService_->enable2dDistanceMeasure();
             });
+
+        connect(pageStart_, &StartPagePage::angleRequested, this, [this]() {
+            // 与距离测量相同，先校验 MPR 视图和服务是否就绪
+            if (!mprViews_ || !currentMprService_ || !currentMprService_->hasData()) {
+                statusBar()->showMessage(QStringLiteral("未初始化四视图，请初始化四视图之后再测量"), 3000);
+                return;
+            }
+            // 如果四视图还未挂载到页面，先挂载，保证角度测量有视图载体
+            if (!mprViews_->parentWidget() && pageStart_) {
+                mountMprViewsToPage(pageStart_);
+            }
+            currentMprService_->enable2dAngleMeasure();
+            });
     }
 
     //连接 DocumentPage 发出的信号

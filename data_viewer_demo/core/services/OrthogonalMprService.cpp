@@ -2,16 +2,19 @@
 #include <QLoggingCategory>
 
 #if USE_VTK
-#  include <vtkAutoInit.h>
-#  include <vtkCommand.h>
-#  include <vtkImageData.h>
-#  include <vtkRenderWindow.h>
-#  include <vtkRenderWindowInteractor.h>
-#  include <vtkResliceImageViewer.h>
-#  include <vtkDistanceWidget.h>
-#  include <vtkDistanceRepresentation.h>
-#  include <vtkDistanceRepresentation2D.h>
-#  include <vtkSmartPointer.h>
+#include <vtkAutoInit.h>
+#include <vtkCommand.h>
+#include <vtkImageData.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkResliceImageViewer.h>
+#include <vtkDistanceWidget.h>
+#include <vtkDistanceRepresentation.h>
+#include <vtkDistanceRepresentation2D.h>
+#include <vtkAngleWidget.h>
+#include <vtkAngleRepresentation.h>
+#include <vtkAngleRepresentation2D.h>
+#include <vtkSmartPointer.h>
 VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2);
 #endif
 
@@ -21,6 +24,7 @@ VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2);
 #include "core/render/renderService.h"
 #include "core/services/VolumeService.h"
 #include "core/services/DistanceMeasureService.h"
+#include "core/services/AngleMeasureService.h"
 #include "core/data/volumeModel.h"
 #include <vector>
 
@@ -38,10 +42,12 @@ namespace core::services {
 		std::unique_ptr<core::render::RenderService>   render;//这个参数负责应用渲染相关的设置，比如窗口宽度/水平和预设
 		std::unique_ptr<VolumeService>                 volume;//这个参数负责加载和管理体数据，比如 DICOM 系列
 		std::unique_ptr<DistanceMeasureService>      distance;//这个参数负责处理距离测量相关的功能
+        std::unique_ptr<AngleMeasureService>            angle;
 		bool hasData = false;                                 //标记当前是否有绑定的体数据
 		vtkImageData* image = nullptr;                        //当前绑定的体数据
 #if USE_VTK
-		std::array<std::vector<vtkSmartPointer<vtkDistanceWidget>>, 3> distanceWidgets; 
+		std::array<std::vector<vtkSmartPointer<vtkDistanceWidget>>, 3> distanceWidgets;
+        std::array<std::vector<vtkSmartPointer<vtkAngleWidget>>, 3>    angleWidgets;
 #endif
     };
 
@@ -53,6 +59,7 @@ namespace core::services {
         impl_->render = std::make_unique<core::render::RenderService>();
         impl_->volume = std::make_unique<VolumeService>();
         impl_->distance = std::make_unique<DistanceMeasureService>();
+        impl_->angle = std::make_unique<AngleMeasureService>();
         /*impl_->hasData = false;*/
     }
 
@@ -108,13 +115,18 @@ namespace core::services {
             impl_->hasData = false;
             return false;
         }
+
         //  绑定到当前 MPR 状态
 		impl_->state->bindImage(image);//把参数 image 传给 MprState 对象
         impl_->state->resetToCenter();
         impl_->hasData = true;
 
         if (impl_->distance) {
-			impl_->distance->bindVolume(volumeModel);//bindVolume 函数把当前的 VolumeModel 传给 DistanceMeasureService 对象  b
+			impl_->distance->bindVolume(volumeModel);//bindVolume 函数把当前的 VolumeModel 传给 DistanceMeasureService 对象  
+        }
+
+        if (impl_->angle) {
+            impl_->angle->bindVolume(volumeModel);//体素到世界坐标的转换
         }
 
         if (error) {
@@ -189,6 +201,9 @@ namespace core::services {
 #if USE_VTK
         for (auto& widgets : impl_->distanceWidgets) {
             widgets.clear();
+        }
+        for (auto& widgets01 : impl_->angleWidgets) {
+            widgets01.clear();
         }
 #endif
     }
@@ -297,15 +312,16 @@ namespace core::services {
             return false;
         }
 
-        double spacing[3] = { 1.0, 1.0, 1.0 };
+        double spacing[3] = { 1.0 ,1.0 , 1.0 };
+
         if (impl_->state->image()) {
-            impl_->state->image()->GetSpacing(spacing);
+			impl_->state->image()->GetSpacing(spacing);//把这个图像的数据间距存到 spacing 数组里
         }
 
         auto setupDistanceWidget = [&](
-            std::vector<vtkSmartPointer<vtkDistanceWidget>>& widgets,//加上容器
-            vtkResliceImageViewer* viewer,
-            int orientation) -> bool
+            std::vector<vtkSmartPointer<vtkDistanceWidget>>& widgets,//加上容器 保存测距widget
+            vtkResliceImageViewer* viewer,//需要测距的那个2D视图
+			int orientation) -> bool//返回bool值
             {
                 if (!viewer) {
                     return false;
@@ -316,8 +332,8 @@ namespace core::services {
                     return false;
                 }
 
-                auto  widget = vtkSmartPointer<vtkDistanceWidget>::New();
-              
+                //划线的widget
+				auto widget = vtkSmartPointer<vtkDistanceWidget>::New();
                 widget->SetInteractor(interactor);
 
                 vtkSmartPointer<vtkDistanceRepresentation2D> rep =
@@ -326,11 +342,13 @@ namespace core::services {
                     rep = vtkSmartPointer<vtkDistanceRepresentation2D>::New();
                     widget->SetRepresentation(rep);
                 }
-                rep->SetRenderer(viewer->GetRenderer());
-                rep->SetLabelFormat("%-#2.6g mm");
+                rep->SetRenderer(viewer->GetRenderer());//把这条测距线渲染在当前切片视图上
+                rep->SetLabelFormat("%-#2.6g mm");//6位有效数字
 
-                if (auto* baseRep = vtkDistanceRepresentation::SafeDownCast(rep.GetPointer())) {
-                    double scale = 1.0;
+				//现在得到的vtkdistanceRepresentation2D ,需要调用父类vtkdistanceRepresentation的功能 如设置scale等 所以需要向上转型  scale的作用是把测量的距离值从像素单位转换为实际的毫米单位
+                auto* baseRep = vtkDistanceRepresentation::SafeDownCast(rep.GetPointer());//GetPointer()返回裸指针
+                if (baseRep != nullptr) {
+					double scale = 1.0;//默认缩放比例为1.0
                     // 根据切片方向挑选在平面内的 spacing
                     if (orientation == vtkResliceImageViewer::SLICE_ORIENTATION_XY) {
                         scale = (spacing[0] + spacing[1]) * 0.5;
@@ -364,6 +382,110 @@ namespace core::services {
             impl_->distanceWidgets[2],
             impl_->assembly->sagittalViewer(),
             vtkResliceImageViewer::SLICE_ORIENTATION_YZ);
+
+        return axialOk || coronalOk || sagittalOk;
+#else
+        return false;
+#endif
+    }
+
+
+    AngleMeasureService* OrthogonalMprService::angleService() const
+    {
+        return impl_->angle.get(); // 返回角度测量服务，方便 UI 查询或记录
+    }
+
+    int OrthogonalMprService::addAngleMeasureByVoxel(const std::array<int, 3>& p0Ijk,
+        const std::array<int, 3>& p1Ijk,
+        const std::array<int, 3>& p2Ijk)
+    {
+#if USE_VTK
+        if (!impl_->hasData || !impl_->angle) {
+            return -1;
+        }
+        return impl_->angle->addAngleByVoxel(p0Ijk, p1Ijk, p2Ijk);
+#else
+        Q_UNUSED(p0Ijk);
+        Q_UNUSED(p1Ijk);
+        Q_UNUSED(p2Ijk);
+        return -1;
+#endif
+    }
+
+    bool OrthogonalMprService::enable2dAngleMeasure() {
+#if USE_VTK
+        if (!impl_->hasData || !impl_->assembly || !impl_->state) {
+            return false;
+        }
+
+        // 优化：防止重复点击按钮导致一个窗口堆积多个未使用的测量工具
+        // 检查当前是否已经有一个处于“开始”状态 (还没画完的) widget
+        // 如果有，就不再创建新的，直接返回 true，让用户继续用旧的画。
+        bool hasPendingWidget = false;
+        for (const auto& widgetVec : impl_->angleWidgets) {
+            if (!widgetVec.empty()) {
+                auto lastWidget = widgetVec.back();
+                // 如果最后一个 widget 存在且处于 Start 状态 (还没画完)，则不创建新的
+                if (lastWidget && lastWidget->GetWidgetState() == vtkAngleWidget::Start) {
+                    hasPendingWidget = true;
+                }
+            }
+        }
+
+        if (hasPendingWidget) {
+            return true; // 已经有工具在等用户画了，直接返回
+        }
+
+        double spacing[3] = { 1.0, 1.0, 1.0 };
+        if (impl_->state->image()) {
+            impl_->state->image()->GetSpacing(spacing);
+        }
+
+        auto setupAngleWidget = [&](
+            std::vector<vtkSmartPointer<vtkAngleWidget>>& widgets,
+            vtkResliceImageViewer* viewer,
+            int orientation) -> bool
+            {
+                if (!viewer) return false;
+                auto* interactor = viewer->GetInteractor();
+                if (!interactor) return false;
+
+                auto widget = vtkSmartPointer<vtkAngleWidget>::New();
+                widget->SetInteractor(interactor);
+
+                vtkSmartPointer<vtkAngleRepresentation2D> rep = vtkAngleRepresentation2D::SafeDownCast(widget->GetRepresentation());
+                if (!rep) {
+                    rep = vtkSmartPointer<vtkAngleRepresentation2D>::New();
+                    widget->SetRepresentation(rep);
+                }
+
+                rep->SetRenderer(viewer->GetRenderer());
+
+                rep->SetLabelFormat("%-#2.1f deg");
+
+                if (auto* baseRep = vtkAngleRepresentation::SafeDownCast(rep.GetPointer())) {
+                    baseRep->SetLabelFormat("%-#2.1f deg");
+                }
+
+                widget->SetPriority(0.9);
+                widget->ManagesCursorOn();
+                widget->On(); // 开启交互
+
+                // 存储控件指针，实现多测量并存
+                widgets.push_back(widget);
+
+                //确保状态更新
+                viewer->Render();
+
+                return true;
+            };
+
+        bool axialOk = setupAngleWidget(
+            impl_->angleWidgets[0], impl_->assembly->axialViewer(), vtkResliceImageViewer::SLICE_ORIENTATION_XY);
+        bool coronalOk = setupAngleWidget(
+            impl_->angleWidgets[1], impl_->assembly->coronalViewer(), vtkResliceImageViewer::SLICE_ORIENTATION_XZ);
+        bool sagittalOk = setupAngleWidget(
+            impl_->angleWidgets[2], impl_->assembly->sagittalViewer(), vtkResliceImageViewer::SLICE_ORIENTATION_YZ);
 
         return axialOk || coronalOk || sagittalOk;
 #else

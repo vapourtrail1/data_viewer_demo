@@ -30,6 +30,7 @@ namespace core::services {
      */
 
     class DistanceMeasureService;
+    class AngleMeasureService;
 
     class OrthogonalMprService
     {
@@ -37,17 +38,17 @@ namespace core::services {
         OrthogonalMprService();
         ~OrthogonalMprService();
 
-		//加上声明：从目录加载 DICOM 序列
+		//从目录加载 DICOM 序列
         bool loadSeries(const QString& directory, QString* error);
 
-        // 绑定 4 个 VTK 窗口 / 交互器  是从 UI 那边传进来
+        //绑定4个VTK 窗口/交互器  是从UI那边传进来
         bool initializeViewers(
             vtkRenderWindow* axialWindow, vtkRenderWindowInteractor* axialInteractor,
             vtkRenderWindow* sagittalWindow, vtkRenderWindowInteractor* sagittalInteractor,
             vtkRenderWindow* coronalWindow, vtkRenderWindowInteractor* coronalInteractor,
             vtkRenderWindow* volumeWindow, vtkRenderWindowInteractor* volumeInteractor);
 
-        // 支持从 QVTKOpenGLNativeWidget 直接 attach 。如果在 UI 那边走的是 Widget 模式
+        // 支持从 QVTKOpenGLNativeWidget 直接 attach  如果在 UI 那边走的是 Widget 模式
         void attachWidgets(QVTKOpenGLNativeWidget* axial,
             QVTKOpenGLNativeWidget* coronal,
             QVTKOpenGLNativeWidget* sagittal,
@@ -67,7 +68,7 @@ namespace core::services {
         // 重置游标到体数据中心
         void resetCursorToCenter();
 
-        // 设置三向切片索引（axial / coronal / sagittal）
+        // 设置三向切片索引
         void setSliceIndex(int axial, int coronal, int sagittal);
 
         // 设置窗宽窗位
@@ -76,21 +77,27 @@ namespace core::services {
         // 应用预设
         void applyPreset(const QString& name);
 
-        /*
-         * 获取内部的 DistanceMeasureService
-         * UI 层或者别的模块，可以通过它来
-         * 添加测量
-         * 查询所有测量记录
-         */
+		// 获取距离测量服务
         DistanceMeasureService* distanceService() const;
 
-        /*
-         * 封装一个方便用体素坐标添加测量的接口
-         * 内部直接转调 DistanceMeasureService::addDistanceByVoxel
-         */
+        /* 用体素坐标添加测量的接口*/
         int addDistanceMeasureByVoxel(const std::array<int, 3>& p0Ijk,const std::array<int, 3>& p1Ijk);
 
+		//2D距离测量功能是否启用
 		bool enable2dDistanceMeasure();
+
+
+        //获取内部的 AngleMeasureService
+        AngleMeasureService* angleService() const;
+
+ 
+        //接口：使用体素坐标写入三点角度记录
+        int addAngleMeasureByVoxel(const std::array<int, 3>& p0Ijk,
+            const std::array<int, 3>& p1Ijk,
+            const std::array<int, 3>& p2Ijk);
+
+        //打开 2D 角度量测工具
+        bool enable2dAngleMeasure();
     private:
         struct Impl;
         std::unique_ptr<Impl> impl_;

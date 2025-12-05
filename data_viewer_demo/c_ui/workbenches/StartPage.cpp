@@ -206,6 +206,12 @@ QWidget* StartPagePage::buildRibbon01(QWidget* parent)
                 });
         }
 
+        if (action.text == QStringLiteral("角度(3个点)")) {
+            connect(button, &QToolButton::clicked, this, [this]() {
+                emit angleRequested();
+                });
+        }
+
         if (action.hasMenu == 1) {  
             auto* menu = new QMenu(button);
             menu->setStyleSheet(QStringLiteral(

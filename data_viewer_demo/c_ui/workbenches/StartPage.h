@@ -18,6 +18,7 @@ public:
 
 signals:
 	void distanceRequested();
+	void angleRequested();
 
 private:
 	QWidget* buildRibbon01(QWidget* parent);
